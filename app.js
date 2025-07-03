@@ -1,4 +1,4 @@
-import TonConnect from "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@1.12.2/dist/tonconnect.esm.min.js";
+import TonConnect from "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@latest/dist/tonconnect.browser.esm.js";
 
 const tonConnect = new TonConnect({
   manifestUrl: "https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json"
@@ -8,7 +8,7 @@ const connectBtn = document.getElementById("connect");
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 
-const WALLET_ADDRESS = "UQB9fEOUC9inarIB7azGR-uS6t5Y8XoeJZyr5DYw2bIqFif7"; // ← замени на свой адрес
+const WALLET_ADDRESS = "EQC..."; // Замени на свой адрес
 
 connectBtn.onclick = async () => {
   try {
@@ -28,7 +28,7 @@ buyBtn.onclick = async () => {
     messages: [
       {
         address: WALLET_ADDRESS,
-        amount: (1 * 1e9).toString() // 1 TON в нанотонах
+        amount: (1 * 1e9).toString()
       }
     ]
   };
