@@ -1,3 +1,9 @@
+
+// Разворачиваем WebApp сразу после загрузки
+if (window.Telegram?.WebApp) {
+  window.Telegram.WebApp.expand();
+}
+
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
 const buyBtn = document.getElementById("buy");
