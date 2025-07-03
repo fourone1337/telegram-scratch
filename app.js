@@ -1,4 +1,4 @@
-import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest";
+import TonConnect from "https://cdn.jsdelivr.net/npm/@tonconnect/sdk@1.12.2/dist/tonconnect.esm.min.js";
 
 const tonConnect = new TonConnect({
   manifestUrl: "https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json"
