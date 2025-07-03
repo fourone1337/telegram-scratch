@@ -1,43 +1,63 @@
-import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@1.0.0-beta.12/dist/tonconnect.min.js";
-
-const tonConnect = new TonConnect({
-  manifestUrl: "https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json"
-});
+// Предположим, TON Connect пока отключен, просто для логики игры
 
 const connectBtn = document.getElementById("connect");
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 
-const WALLET_ADDRESS = "EQC..."; // Замените на ваш адрес TON
+// Массив истории билетов
+const history = [];
 
-connectBtn.onclick = async () => {
-  try {
-    await tonConnect.connectWallet();
-    const wallet = tonConnect.wallet;
-    status.textContent = "✅ Кошелёк: " + wallet.account.address;
-    buyBtn.disabled = false;
-  } catch (error) {
-    console.error(error);
-    status.textContent = "❌ Ошибка подключения кошелька";
+// Генератор билета
+function buyTicket() {
+  const chance = Math.floor(Math.random() * 100);
+  const isWinner = chance < 20; // 20% шанс выиграть
+  const ticketNumber = Math.floor(Math.random() * 1_000_000);
+  return { number: ticketNumber, winner: isWinner };
+}
+
+// Функция для обновления истории в UI
+function renderHistory() {
+  let historyDiv = document.getElementById("history");
+  if (!historyDiv) {
+    historyDiv = document.createElement("div");
+    historyDiv.id = "history";
+    historyDiv.style.marginTop = "30px";
+    historyDiv.style.textAlign = "left";
+    document.body.appendChild(historyDiv);
   }
+  
+  if (history.length === 0) {
+    historyDiv.innerHTML = "<b>История пуста</b>";
+    return;
+  }
+  
+  const listItems = history.map(ticket => {
+    const color = ticket.winner ? "green" : "red";
+    const statusText = ticket.winner ? "Выигрыш" : "Проигрыш";
+    return `<div style="color:${color}; margin-bottom:4px;">
+      🎫 Билет #${ticket.number} — <b>${statusText}</b>
+    </div>`;
+  });
+  
+  historyDiv.innerHTML = `<h3>История билетов</h3>` + listItems.join("");
+}
+
+// Обработка нажатия кнопки «Купить билет»
+buyBtn.onclick = () => {
+  const ticket = buyTicket();
+  history.push(ticket);
+
+  if (ticket.winner) {
+    status.textContent = `🎉 Поздравляем! Ваш билет #${ticket.number} выиграл!`;
+  } else {
+    status.textContent = `😞 Увы, билет #${ticket.number} проиграл. Попробуйте ещё!`;
+  }
+  
+  renderHistory();
 };
 
-buyBtn.onclick = async () => {
-  const tx = {
-    validUntil: Math.floor(Date.now() / 1000) + 300,
-    messages: [
-      {
-        address: WALLET_ADDRESS,
-        amount: (1 * 1e9).toString()
-      }
-    ]
-  };
+// Пока кнопка «Купить билет» активна по умолчанию
+buyBtn.disabled = false;
 
-  try {
-    await tonConnect.sendTransaction(tx);
-    status.textContent = "📤 Транзакция отправлена. Ожидаем подтверждение.";
-  } catch (error) {
-    console.error(error);
-    status.textContent = "❌ Транзакция отменена.";
-  }
-};
+// Статус пока пустой
+status.textContent = "Нажмите «Купить билет», чтобы сыграть!";
