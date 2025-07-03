@@ -2,105 +2,14 @@ const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
-const ticketContainer = document.getElementById("ticket-container");
-const historyDiv = document.getElementById("history");
+
+const history = [];
 
 let currentTicket = null;
 let openedIndices = [];
-let openedCount = 0;
-
-function createScratchCell(emoji, idx) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "cell-wrapper";
-
-  const emojiDiv = document.createElement("div");
-  emojiDiv.className = "emoji";
-  emojiDiv.textContent = emoji;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = 60;
-  canvas.height = 60;
-  canvas.style.position = "absolute";
-  canvas.style.top = 0;
-  canvas.style.left = 0;
-  canvas.style.borderRadius = "8px";
-  canvas.style.userSelect = "none";
-  canvas.style.touchAction = "none";
-
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#888";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  let isDrawing = false;
-
-  function getPointerPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
-
-  function scratch(e) {
-    if (!isDrawing) return;
-    const pos = getPointerPos(e);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.closePath();
-  }
-
-  function checkCleared() {
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let visiblePixels = 0;
-    for(let i = 3; i < imgData.data.length; i += 4){
-      if(imgData.data[i] > 0) visiblePixels++;
-    }
-    return visiblePixels < 1800;
-  }
-
-  function finishCell() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.style.pointerEvents = "none";
-    openedIndices.push(idx);
-    openedCount++;
-    if (openedCount === 3) {
-      finishGame();
-    }
-  }
-
-  canvas.addEventListener("pointerdown", (e) => {
-    if (openedIndices.includes(idx)) return;
-    if (openedCount >= 3) return;
-    isDrawing = true;
-    scratch(e);
-  });
-  canvas.addEventListener("pointermove", scratch);
-  canvas.addEventListener("pointerup", () => {
-    if (!isDrawing) return;
-    isDrawing = false;
-    if (checkCleared()) {
-      finishCell();
-    }
-  });
-  canvas.addEventListener("pointerleave", () => {
-    if (isDrawing) {
-      isDrawing = false;
-      if (checkCleared()) {
-        finishCell();
-      }
-    }
-  });
-
-  wrapper.appendChild(emojiDiv);
-  wrapper.appendChild(canvas);
-
-  return wrapper;
-}
 
 function generateTicket() {
+  // 6 эмодзи для 2x3, с повторами
   const ticket = [];
   for (let i = 0; i < 6; i++) {
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
@@ -110,18 +19,53 @@ function generateTicket() {
 }
 
 function renderTicket(ticket) {
-  ticketContainer.innerHTML = "";
-  openedIndices = [];
-  openedCount = 0;
+  const containerId = "ticket-container";
+  let container = document.getElementById(containerId);
+
+  if (!container) {
+    container = document.createElement("div");
+    container.id = containerId;
+    container.style.display = "grid";
+    container.style.gridTemplateColumns = "repeat(3, 60px)";
+    container.style.gridTemplateRows = "repeat(2, 60px)";
+    container.style.gridGap = "10px";
+    container.style.justifyContent = "center";
+    container.style.margin = "20px 0";
+    document.body.insertBefore(container, status);
+  }
+  container.innerHTML = "";
 
   ticket.forEach((emoji, idx) => {
-    const cell = createScratchCell(emoji, idx);
-    ticketContainer.appendChild(cell);
+    const cell = document.createElement("div");
+    cell.style.width = "60px";
+    cell.style.height = "60px";
+    cell.style.backgroundColor = "#888";
+    cell.style.borderRadius = "8px";
+    cell.style.display = "flex";
+    cell.style.alignItems = "center";
+    cell.style.justifyContent = "center";
+    cell.style.fontSize = "36px";
+    cell.style.cursor = "pointer";
+    cell.style.userSelect = "none";
+    cell.textContent = openedIndices.includes(idx) ? emoji : "❓";
+
+    cell.onclick = () => {
+      if (openedIndices.length >= 3 || openedIndices.includes(idx)) return;
+
+      openedIndices.push(idx);
+      cell.textContent = emoji;
+
+      if (openedIndices.length === 3) {
+        checkWin(ticket);
+      }
+    };
+
+    container.appendChild(cell);
   });
 }
 
-function finishGame() {
-  const openedEmojis = openedIndices.map(i => currentTicket[i]);
+function checkWin(ticket) {
+  const openedEmojis = openedIndices.map(i => ticket[i]);
   const allSame = openedEmojis.every(e => e === openedEmojis[0]);
 
   if (allSame) {
@@ -131,17 +75,25 @@ function finishGame() {
   }
 
   history.push({
-    ticket: currentTicket,
+    ticket,
     opened: [...openedIndices],
     winner: allSame,
     openedEmojis
   });
 
   renderHistory();
-  buyBtn.disabled = false;
 }
 
 function renderHistory() {
+  let historyDiv = document.getElementById("history");
+  if (!historyDiv) {
+    historyDiv = document.createElement("div");
+    historyDiv.id = "history";
+    historyDiv.style.marginTop = "30px";
+    historyDiv.style.textAlign = "left";
+    document.body.appendChild(historyDiv);
+  }
+
   if (history.length === 0) {
     historyDiv.innerHTML = "<b>История пуста</b>";
     return;
@@ -160,10 +112,11 @@ function renderHistory() {
 }
 
 buyBtn.onclick = () => {
-  buyBtn.disabled = true;
-  status.textContent = "Стирайте покрытие на 3 ячейках, чтобы открыть!";
   currentTicket = generateTicket();
+  openedIndices = [];
+  status.textContent = "Выберите 3 ячейки, чтобы открыть";
   renderTicket(currentTicket);
 };
 
-const history = [];
+buyBtn.disabled = false;
+status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
