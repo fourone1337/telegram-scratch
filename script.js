@@ -1,5 +1,5 @@
 const tg = window.Telegram.WebApp;
-tg.expand(); // разворачивает окно на весь экран
+tg.expand();
 
 const userInfo = document.getElementById("user-info");
 const btn = document.getElementById("buy-button");
@@ -11,6 +11,31 @@ if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
   userInfo.innerText = "Не удалось получить данные Telegram.";
 }
 
-btn.addEventListener("click", () => {
-  alert("Здесь будет оплата TON и запуск скретч-карты 💸🎮");
+// TON Connect
+let tonConnect;
+let connectedWallet;
+
+btn.innerText = "🔌 Подключить TON кошелёк";
+btn.addEventListener("click", async () => {
+  if (!tonConnect) {
+    tonConnect = new TonConnect({
+      manifestUrl: "https://your-vercel-url.vercel.app/tonconnect-manifest.json"
+    });
+  }
+
+  await tonConnect.restoreConnection(); // восстановим, если уже подключено
+
+  if (!tonConnect.wallet) {
+    await tonConnect.connectWallet();
+  }
+
+  connectedWallet = tonConnect.wallet;
+
+  if (connectedWallet) {
+    const address = connectedWallet.account.address;
+    btn.innerText = `✅ Кошелёк: ${address.slice(0, 6)}...${address.slice(-4)}`;
+    userInfo.innerText += `\nTON: ${address}`;
+  } else {
+    alert("Не удалось подключить кошелёк.");
+  }
 });
