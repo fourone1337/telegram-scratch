@@ -1,7 +1,7 @@
 {
   "url": "telegram-scratch-yhgb.vercel.app",
   "name": "TON Scratch Lottery",
-  "iconUrl": "https://your-vercel-url.vercel.app/icon.png",
+  //"iconUrl": "https://your-vercel-url.vercel.app/icon.png",
   "termsOfUseUrl": "https://your-vercel-url.vercel.app/terms",
   "privacyPolicyUrl": "https://your-vercel-url.vercel.app/privacy"
 }
