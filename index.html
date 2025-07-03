@@ -1,88 +1,47 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Скретч-Лотерея</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f0f0f0;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
-    }
-    button {
-      display: block;
-      margin: 15px auto;
-      padding: 12px 24px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background-color: #22aaff;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s ease;
-    }
-    button:hover {
-      background-color: #007acc;
-    }
-    #status {
-      margin-top: 20px;
-      font-size: 16px;
-    }
-  </style>
-</head>
-<body>
-  <h1>🎟️ Скретч-Лотерея</h1>
-
+<!doctype html><html><head><meta charset="utf-8"><title>Scratch</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head><body>
+  <h1>Scratch 🧪</h1>
   <button id="connect">🔗 Подключить кошелёк</button>
   <button id="buy" disabled>💸 Купить билет за 1 TON</button>
-
-  <div id="status">Кошелёк не подключен.</div>
+  <p id="status">Статус: –</p>
 
   <script type="module">
+    console.log("Telegram WebApp?", window.Telegram?.WebApp);
+    console.log("InitData:", window.Telegram?.WebApp?.initDataUnsafe);
+
     import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest";
-
     const tonConnect = new TonConnect();
-    const connectBtn = document.getElementById("connect");
-    const buyBtn = document.getElementById("buy");
-    const status = document.getElementById("status");
+    const status = document.getElementById('status');
+    const connect = document.getElementById('connect');
+    const buy = document.getElementById('buy');
 
-    // Вставь сюда адрес своего кошелька, куда будет поступать TON
-    const BOT_WALLET_ADDRESS = "UQB9fEOUC9inarIB7azGR-uS6t5Y8XoeJZyr5DYw2bIqFif7"; // ЗАМЕНИ НА СВОЙ TON-КОШЕЛЁК
-
-    // Подключение кошелька
-    connectBtn.onclick = async () => {
-      await tonConnect.connectWallet();
-      const wallet = tonConnect.wallet;
-      status.textContent = "✅ Кошелёк подключён: " + wallet.account.address;
-      buyBtn.disabled = false;
+    connect.onclick = async () => {
+      console.log("Connect clicked");
+      try {
+        await tonConnect.connectWallet();
+        console.log("Wallet:", tonConnect.wallet);
+        status.textContent = '✅ ' + tonConnect.wallet.account.address;
+        buy.disabled = false;
+      } catch(e) {
+        console.error(e);
+        status.textContent = '❌ Ошибка подключения';
+      }
     };
 
-    // Покупка билета
-    buyBtn.onclick = async () => {
-      const tx = {
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        messages: [
-          {
-            address: BOT_WALLET_ADDRESS,
-            amount: (1 * 1e9).toString() // 1 TON в нанотонах
-          }
-        ]
-      };
-
+    buy.onclick = async () => {
       try {
+        const tx = {
+          validUntil: Math.floor(Date.now()/1000)+300,
+          messages: [{ address: "EQC...", amount: "1000000000" }]
+        };
+        console.log("Sending tx", tx);
         await tonConnect.sendTransaction(tx);
-        status.textContent = "💬 Транзакция отправлена. Ожидаем подтверждение...";
-      } catch (e) {
-        status.textContent = "❌ Транзакция отменена или не прошла.";
+        status.textContent = "Транзакция отправлена";
+      } catch(e) {
         console.error(e);
+        status.textContent = "❌ Ошибка транзакции";
       }
     };
   </script>
-</body>
-</html>
+</body></html>
