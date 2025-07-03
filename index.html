@@ -51,21 +51,17 @@
   <script type="module">
     import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest";
 
-    const tonConnect = new TonConnect();
+    // Инициализация TON Connect с указанием манифеста
+    const tonConnect = new TonConnect({
+      manifestUrl: "https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json"
+    });
+
     const connectBtn = document.getElementById("connect");
     const buyBtn = document.getElementById("buy");
     const status = document.getElementById("status");
 
-    const WALLET_ADDRESS = "EQC..."; // ← Замени на свой реальный TON-адрес
+    const WALLET_ADDRESS = "EQC..."; // ← Замени на свой кошелёк
 
-    // Проверяем, открыт ли WebApp внутри Telegram
-    const isTelegramWebApp = !!window.Telegram?.WebApp;
-    if (!isTelegramWebApp) {
-      status.textContent = "❌ Откройте игру через Telegram WebApp.";
-      connectBtn.disabled = true;
-    }
-
-    // Кнопка подключения
     connectBtn.onclick = async () => {
       try {
         await tonConnect.connectWallet();
@@ -74,18 +70,17 @@
         buyBtn.disabled = false;
       } catch (error) {
         console.error(error);
-        status.textContent = "❌ Не удалось подключить кошелёк.";
+        status.textContent = "❌ Ошибка подключения кошелька";
       }
     };
 
-    // Кнопка оплаты
     buyBtn.onclick = async () => {
       const tx = {
         validUntil: Math.floor(Date.now() / 1000) + 300,
         messages: [
           {
             address: WALLET_ADDRESS,
-            amount: (1 * 1e9).toString()
+            amount: (1 * 1e9).toString() // 1 TON в нанотонах
           }
         ]
       };
