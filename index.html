@@ -2,21 +2,18 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Скретч-Лотерея</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Скретч-лотерея 2x3 с эффектом стирания</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>🎟️ Скретч-Лотерея</h1>
 
-  <button id="connect">🔗 Подключить кошелёк</button>
-  <button id="buy" disabled>💸 Купить билет за 1 TON</button>
+  <h1>Скретч-лотерея 2x3</h1>
+  <button id="buy">Купить билет</button>
+  <div id="status">Нажмите "Купить билет", чтобы начать игру!</div>
+  <div id="ticket-container"></div>
+  <div id="history"><b>История пуста</b></div>
 
-  <div id="status">Кошелёк не подключён.</div>
-
-  <script type="module" src="app.js"></script>
+  <script src="app.js" type="module"></script>
 </body>
 </html>
-
