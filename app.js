@@ -1,9 +1,3 @@
-
-// Разворачиваем WebApp сразу после загрузки
-if (window.Telegram?.WebApp) {
-  window.Telegram.WebApp.expand();
-}
-
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
 const buyBtn = document.getElementById("buy");
@@ -15,9 +9,9 @@ let currentTicket = null;
 let openedIndices = [];
 
 function generateTicket() {
-  // 9 эмодзи для 3x3, с повторами
+  // 6 эмодзи для 2x3, с повторами
   const ticket = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 6; i++) {
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
     ticket.push(emoji);
   }
@@ -33,6 +27,7 @@ function renderTicket(ticket) {
     container.id = containerId;
     container.style.display = "grid";
     container.style.gridTemplateColumns = "repeat(3, 60px)";
+    container.style.gridTemplateRows = "repeat(2, 60px)";
     container.style.gridGap = "10px";
     container.style.justifyContent = "center";
     container.style.margin = "20px 0";
