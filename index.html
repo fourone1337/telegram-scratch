@@ -4,41 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Скретч-Лотерея</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f8f9fa;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
-    }
-    button {
-      display: block;
-      margin: 15px auto;
-      padding: 12px 24px;
-      font-size: 18px;
-      border: none;
-      border-radius: 12px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-    button:hover:not(:disabled) {
-      background-color: #0056b3;
-    }
-    #status {
-      margin-top: 25px;
-      font-size: 16px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>🎟️ Скретч-Лотерея</h1>
@@ -48,51 +14,7 @@
 
   <div id="status">Кошелёк не подключён.</div>
 
-  <script type="module">
-    import { TonConnect } from "https://unpkg.com/@tonconnect/sdk@latest";
-
-    // Инициализация TON Connect с указанием манифеста
-    const tonConnect = new TonConnect({
-      manifestUrl: "https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json"
-    });
-
-    const connectBtn = document.getElementById("connect");
-    const buyBtn = document.getElementById("buy");
-    const status = document.getElementById("status");
-
-    const WALLET_ADDRESS = "EQC..."; // ← Замени на свой кошелёк
-
-    connectBtn.onclick = async () => {
-      try {
-        await tonConnect.connectWallet();
-        const wallet = tonConnect.wallet;
-        status.textContent = "✅ Кошелёк: " + wallet.account.address;
-        buyBtn.disabled = false;
-      } catch (error) {
-        console.error(error);
-        status.textContent = "❌ Ошибка подключения кошелька";
-      }
-    };
-
-    buyBtn.onclick = async () => {
-      const tx = {
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        messages: [
-          {
-            address: WALLET_ADDRESS,
-            amount: (1 * 1e9).toString() // 1 TON в нанотонах
-          }
-        ]
-      };
-
-      try {
-        await tonConnect.sendTransaction(tx);
-        status.textContent = "📤 Транзакция отправлена. Ожидаем подтверждение.";
-      } catch (error) {
-        console.error(error);
-        status.textContent = "❌ Транзакция отменена.";
-      }
-    };
-  </script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
+

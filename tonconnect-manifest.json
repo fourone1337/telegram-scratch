@@ -2,7 +2,7 @@
   "manifest_version": "0.1.0",
   "url": "https://telegram-scratch-yhgb.vercel.app",
   "name": "TON Scratch Lottery",
-  "iconUrl": "https://telegram.org/img/t_logo.png",
+  "iconUrl": "https://telegram-scratch-yhgb.vercel.app/icon.png",
   "termsOfUseUrl": "https://telegram-scratch-yhgb.vercel.app/terms",
   "privacyPolicyUrl": "https://telegram-scratch-yhgb.vercel.app/privacy"
 }
