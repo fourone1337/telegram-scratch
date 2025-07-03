@@ -1,6 +1,5 @@
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
-const connectBtn = document.getElementById("connect");
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 
@@ -10,9 +9,9 @@ let currentTicket = null;
 let openedIndices = [];
 
 function generateTicket() {
-  // Случайно выбираем 6 эмодзи с повторами
+  // 9 эмодзи для 3x3, с повторами
   const ticket = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 9; i++) {
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
     ticket.push(emoji);
   }
@@ -26,24 +25,25 @@ function renderTicket(ticket) {
   if (!container) {
     container = document.createElement("div");
     container.id = containerId;
-    container.style.display = "flex";
+    container.style.display = "grid";
+    container.style.gridTemplateColumns = "repeat(3, 60px)";
+    container.style.gridGap = "10px";
     container.style.justifyContent = "center";
     container.style.margin = "20px 0";
-    container.style.gap = "10px";
     document.body.insertBefore(container, status);
   }
   container.innerHTML = "";
 
   ticket.forEach((emoji, idx) => {
     const cell = document.createElement("div");
-    cell.style.width = "50px";
-    cell.style.height = "50px";
+    cell.style.width = "60px";
+    cell.style.height = "60px";
     cell.style.backgroundColor = "#888";
     cell.style.borderRadius = "8px";
     cell.style.display = "flex";
     cell.style.alignItems = "center";
     cell.style.justifyContent = "center";
-    cell.style.fontSize = "32px";
+    cell.style.fontSize = "36px";
     cell.style.cursor = "pointer";
     cell.style.userSelect = "none";
     cell.textContent = openedIndices.includes(idx) ? emoji : "❓";
@@ -64,9 +64,7 @@ function renderTicket(ticket) {
 }
 
 function checkWin(ticket) {
-  // Получаем открытые эмодзи
   const openedEmojis = openedIndices.map(i => ticket[i]);
-  // Проверяем, все ли три совпадают
   const allSame = openedEmojis.every(e => e === openedEmojis[0]);
 
   if (allSame) {
@@ -75,12 +73,11 @@ function checkWin(ticket) {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
 
-  // Сохраняем в историю
   history.push({
-    ticket: ticket,
+    ticket,
     opened: [...openedIndices],
     winner: allSame,
-    openedEmojis: openedEmojis
+    openedEmojis
   });
 
   renderHistory();
