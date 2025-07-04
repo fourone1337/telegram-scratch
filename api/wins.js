@@ -10,10 +10,9 @@ export default async function handler(req, res) {
     const { address, emojis, date } = req.body;
 
     if (!address || !emojis) {
-      return res.status(400).json({ error: 'Invalid data' });
+      return res.status(400).json({ error: 'Неверные данные' });
     }
 
-    // Получить текущий список побед
     let current = [];
     try {
       const getRes = await fetch(BASE_URL, {
@@ -22,13 +21,14 @@ export default async function handler(req, res) {
           'X-Master-Key': API_KEY
         }
       });
+
       const result = await getRes.json();
       current = result.record || [];
     } catch (err) {
-      console.error("Fetch error", err);
+      console.error("Ошибка при получении данных:", err);
+      return res.status(500).json({ error: 'Ошибка чтения из JSONBin' });
     }
 
-    // Добавить новую запись
     const updated = [
       ...current,
       {
@@ -38,7 +38,6 @@ export default async function handler(req, res) {
       }
     ];
 
-    // Обновить Bin
     try {
       await fetch(BASE_URL, {
         method: 'PUT',
@@ -50,7 +49,8 @@ export default async function handler(req, res) {
       });
       return res.status(200).json({ success: true });
     } catch (err) {
-      return res.status(500).json({ error: 'Failed to update JSONBin' });
+      console.error("Ошибка при записи данных:", err);
+      return res.status(500).json({ error: 'Ошибка записи в JSONBin' });
     }
   }
 
@@ -66,9 +66,10 @@ export default async function handler(req, res) {
       const data = result.record || [];
       return res.status(200).json(data.slice(-10).reverse());
     } catch (err) {
-      return res.status(500).json({ error: 'Failed to fetch data' });
+      console.error("Ошибка при получении списка победителей:", err);
+      return res.status(500).json({ error: 'Ошибка загрузки данных' });
     }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  return res.status(405).json({ error: 'Метод не поддерживается' });
 }
