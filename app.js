@@ -205,3 +205,17 @@ function renderWinners(data) {
 
 // Загрузка победителей при запуске
 fetchWinners();
+
+
+//отладка
+
+async function fetchWinners() {
+  try {
+    const res = await fetch('/api/wins');
+    const data = await res.json();
+    console.log("🎯 Победители:", data);
+    renderWinners(data);
+  } catch (err) {
+    console.error("Ошибка загрузки победителей:", err);
+  }
+}
