@@ -21,7 +21,9 @@ tonConnectUI.onStatusChange(wallet => {
   const status = document.getElementById("status");
 
   if (wallet) {
-    walletDisplay.textContent = `🟢 Кошелёк подключен: ${wallet.account.address}`;
+    const fullAddress = wallet.account.address;
+    const shortAddress = `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`;
+    walletDisplay.textContent = `🟢 Кошелёк: ${shortAddress}`;
     buyBtn.disabled = false;
     status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
   } else {
