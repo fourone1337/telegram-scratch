@@ -2,14 +2,48 @@ const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
+const walletDisplay = document.getElementById("wallet-address");
 
 const history = [];
 
 let currentTicket = null;
 let openedIndices = [];
 
+// 1. Инициализация TON Connect UI
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json',
+  buttonRootId: 'ton-connect'
+});
+
+// 2. Проверка подключения при загрузке
+tonConnectUI.connectionRestored.then(() => {
+  const wallet = tonConnectUI.connected;
+  if (wallet) {
+    walletDisplay.textContent = `🟢 Кошелёк подключен: ${wallet.account.address}`;
+    buyBtn.disabled = false;
+    status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
+  } else {
+    walletDisplay.textContent = "🔴 Кошелёк не подключён.";
+    buyBtn.disabled = true;
+    status.textContent = "Подключите кошелёк для начала игры.";
+  }
+});
+
+// 3. Проверка подключения перед покупкой билета
+buyBtn.onclick = () => {
+  const wallet = tonConnectUI.connected;
+  if (!wallet) {
+    alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
+    return;
+  }
+
+  currentTicket = generateTicket();
+  openedIndices = [];
+  status.textContent = "Выберите 3 ячейки, чтобы открыть";
+  renderTicket(currentTicket);
+};
+
 function generateTicket() {
-  // 6 эмодзи для 2x3, с повторами
   const ticket = [];
   for (let i = 0; i < 6; i++) {
     const emoji = emojis[Math.floor(Math.random() * emojis.length)];
@@ -110,13 +144,3 @@ function renderHistory() {
 
   historyDiv.innerHTML = `<h3>История игр</h3>` + listItems.join("");
 }
-
-buyBtn.onclick = () => {
-  currentTicket = generateTicket();
-  openedIndices = [];
-  status.textContent = "Выберите 3 ячейки, чтобы открыть";
-  renderTicket(currentTicket);
-};
-
-buyBtn.disabled = false;
-status.textContent = "Нажмите «Купить билет», чтобы начать игру!";

@@ -3,20 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Скретч-Лотерея</title>
+
   <link rel="stylesheet" href="style.css" />
+  <!-- TON Connect UI -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
   <h1>🎟️ Скретч-Лотерея</h1>
 
-  <button id="connect">🔗 Подключить кошелёк</button>
+  <!-- Кнопка подключения TON Connect -->
+  <div id="ton-connect"></div>
+  <div id="wallet-address" style="margin: 10px 0; font-weight: bold;">🔴 Кошелёк не подключён.</div>
+
+  <!-- Кнопка покупки билета -->
   <button id="buy" disabled>💸 Купить билет за 1 TON</button>
 
-  <div id="status">Кошелёк не подключён.</div>
+  <!-- Статус -->
+  <div id="status">Подключите кошелёк для начала игры</div>
 
+  <!-- Основная логика -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
