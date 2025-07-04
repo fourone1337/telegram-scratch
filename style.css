@@ -83,3 +83,9 @@ button:hover:not(:disabled) {
   text-align: left;
   font-size: 14px;
 }
+
+#ton-connect {
+  display: flex;
+  justify-content: center;
+  margin: 10px auto;
+}
