@@ -1,5 +1,4 @@
-
-// pages/api/wins.js
+import fetch from 'node-fetch';
 
 const BIN_ID = "6867bece8561e97a50316303";
 const API_KEY = "$2a$10$v97PDf5iapEJ8qAdzxlCYuKKmOtA7s9wE6llFmOfbNDlc3WYl1BXW";
