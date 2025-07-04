@@ -1,7 +1,6 @@
-import fetch from 'node-fetch';
-
+// JSONBin параметры
 const BIN_ID = "6867bece8561e97a50316303";
-const API_KEY = "$2a$10$v97PDf5iapEJ8qAdzxlCYuKKmOtA7s9wE6llFmOfbNDlc3WYl1BXW";
+const API_KEY = "$2a$10$v97PDf5iapEJ8qAdzxlCYuKKmOtA7s9wE6llFmOfbNDlc3WYl1BXW"; // ← подставь свой ключ без пробелов
 const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
 export default async function handler(req, res) {
@@ -12,8 +11,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Неверные данные' });
     }
 
-    let current = [];
     try {
+      // Получаем текущие данные
       const getRes = await fetch(BASE_URL, {
         method: 'GET',
         headers: {
@@ -21,35 +20,30 @@ export default async function handler(req, res) {
         }
       });
 
-      const result = await getRes.json();
-      current = result.record || [];
-    } catch (err) {
-      console.error("Ошибка при получении данных:", err);
-      return res.status(500).json({ error: 'Ошибка чтения из JSONBin' });
-    }
+      const json = await getRes.json();
+      const winnings = json.record.winnings || [];
 
-    const updated = [
-      ...current,
-      {
+      // Добавляем новую запись
+      winnings.push({
         address,
         emojis,
         date: date || new Date().toISOString()
-      }
-    ];
+      });
 
-    try {
+      // Обновляем только поле winnings
       await fetch(BASE_URL, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'X-Master-Key': API_KEY
         },
-        body: JSON.stringify(updated)
+        body: JSON.stringify({ winnings })
       });
+
       return res.status(200).json({ success: true });
     } catch (err) {
-      console.error("Ошибка при записи данных:", err);
-      return res.status(500).json({ error: 'Ошибка записи в JSONBin' });
+      console.error("❌ Ошибка при сохранении победы:", err);
+      return res.status(500).json({ error: 'Ошибка загрузки данных' });
     }
   }
 
@@ -61,11 +55,11 @@ export default async function handler(req, res) {
           'X-Master-Key': API_KEY
         }
       });
-      const result = await getRes.json();
-      const data = result.record || [];
-      return res.status(200).json(data.slice(-10).reverse());
+
+      const json = await getRes.json();
+      return res.status(200).json(json.record.winnings || []);
     } catch (err) {
-      console.error("Ошибка при получении списка победителей:", err);
+      console.error("❌ Ошибка при получении победителей:", err);
       return res.status(500).json({ error: 'Ошибка загрузки данных' });
     }
   }
