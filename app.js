@@ -111,6 +111,7 @@ function checkWin(ticket) {
     if (address) {
       sendWinToServer(address, emojis);
       fetchWinners();
+      window.addEventListener("focus", fetchWinners);
     }
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
