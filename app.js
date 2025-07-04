@@ -1,3 +1,6 @@
+from ace_tools import write_code
+
+write_code('app.js', """
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
 const buyBtn = document.getElementById("buy");
@@ -32,6 +35,58 @@ tonConnectUI.onStatusChange(wallet => {
     status.textContent = "Подключите кошелёк для начала игры.";
   }
 });
+
+// Отправка победы на сервер
+async function sendWinToServer(address, emojis) {
+  try {
+    await fetch('/api/wins', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        address,
+        emojis,
+        date: new Date().toISOString()
+      })
+    });
+  } catch (err) {
+    console.error("Ошибка отправки победы:", err);
+  }
+}
+
+// Получение списка победителей с сервера
+async function fetchWinners() {
+  try {
+    const res = await fetch('/api/wins');
+    const data = await res.json();
+    renderWinners(data);
+  } catch (err) {
+    console.error("Ошибка загрузки победителей:", err);
+  }
+}
+
+// Отображение победителей
+function renderWinners(data) {
+  let winnersDiv = document.getElementById("winners");
+  if (!winnersDiv) {
+    winnersDiv = document.createElement("div");
+    winnersDiv.id = "winners";
+    winnersDiv.style.marginTop = "40px";
+    winnersDiv.innerHTML = "<h3>🏆 Победители</h3>";
+    document.body.appendChild(winnersDiv);
+  }
+
+  if (!data.length) {
+    winnersDiv.innerHTML += "<div>Победителей пока нет</div>";
+    return;
+  }
+
+  const list = data.map(win => {
+    const shortAddr = `${win.address.slice(0, 4)}...${win.address.slice(-3)}`;
+    return `<div>🎉 ${shortAddr} — ${win.emojis} (${new Date(win.date).toLocaleString()})</div>`;
+  });
+
+  winnersDiv.innerHTML = "<h3>🏆 Победители</h3>" + list.join("");
+}
 
 // 3. Проверка подключения перед покупкой билета
 buyBtn.onclick = () => {
@@ -108,6 +163,13 @@ function checkWin(ticket) {
 
   if (allSame) {
     status.textContent = "🎉 Поздравляем! Вы выиграли!";
+
+    const address = tonConnectUI.connected?.account?.address;
+    const emojis = openedEmojis.join('');
+    if (address) {
+      sendWinToServer(address, emojis);
+      fetchWinners();
+    }
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
@@ -148,3 +210,6 @@ function renderHistory() {
 
   historyDiv.innerHTML = `<h3>История игр</h3>` + listItems.join("");
 }
+
+fetchWinners();
+""")
