@@ -1,6 +1,4 @@
-from ace_tools import write_code
 
-write_code('app.js', """
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 
 const buyBtn = document.getElementById("buy");
@@ -212,4 +210,3 @@ function renderHistory() {
 }
 
 fetchWinners();
-""")
