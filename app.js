@@ -10,83 +10,27 @@ const history = [];
 let currentTicket = null;
 let openedIndices = [];
 
-// 1. Инициализация TON Connect UI
+// Инициализация TON Connect UI
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json',
   buttonRootId: 'ton-connect'
 });
 
-// 2. Обновление статуса при изменении подключения
+// Обновление статуса при изменении подключения
 tonConnectUI.onStatusChange(wallet => {
-  const walletDisplay = document.getElementById("wallet-address");
-  const status = document.getElementById("status");
+  const fullAddress = wallet?.account?.address || "";
+  const shortAddress = fullAddress
+    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
+    : "🔴 Кошелёк не подключён.";
 
-  if (wallet) {
-    const fullAddress = wallet.account.address;
-    const shortAddress = `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`;
-    walletDisplay.textContent = `🟢 Кошелёк: ${shortAddress}`;
-    buyBtn.disabled = false;
-    status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
-  } else {
-    walletDisplay.textContent = `🔴 Кошелёк не подключён.`;
-    buyBtn.disabled = true;
-    status.textContent = "Подключите кошелёк для начала игры.";
-  }
+  walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
+  buyBtn.disabled = !wallet;
+  status.textContent = fullAddress
+    ? "Нажмите «Купить билет», чтобы начать игру!"
+    : "Подключите кошелёк для начала игры.";
 });
 
-// Отправка победы на сервер
-async function sendWinToServer(address, emojis) {
-  try {
-    await fetch('/api/wins', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        address,
-        emojis,
-        date: new Date().toISOString()
-      })
-    });
-  } catch (err) {
-    console.error("Ошибка отправки победы:", err);
-  }
-}
-
-// Получение списка победителей с сервера
-async function fetchWinners() {
-  try {
-    const res = await fetch('/api/wins');
-    const data = await res.json();
-    renderWinners(data);
-  } catch (err) {
-    console.error("Ошибка загрузки победителей:", err);
-  }
-}
-
-// Отображение победителей
-function renderWinners(data) {
-  let winnersDiv = document.getElementById("winners");
-  if (!winnersDiv) {
-    winnersDiv = document.createElement("div");
-    winnersDiv.id = "winners";
-    winnersDiv.style.marginTop = "40px";
-    winnersDiv.innerHTML = "<h3>🏆 Победители</h3>";
-    document.body.appendChild(winnersDiv);
-  }
-
-  if (!data.length) {
-    winnersDiv.innerHTML += "<div>Победителей пока нет</div>";
-    return;
-  }
-
-  const list = data.map(win => {
-    const shortAddr = `${win.address.slice(0, 4)}...${win.address.slice(-3)}`;
-    return `<div>🎉 ${shortAddr} — ${win.emojis} (${new Date(win.date).toLocaleString()})</div>`;
-  });
-
-  winnersDiv.innerHTML = "<h3>🏆 Победители</h3>" + list.join("");
-}
-
-// 3. Проверка подключения перед покупкой билета
+// Проверка подключения перед покупкой билета
 buyBtn.onclick = () => {
   const wallet = tonConnectUI.connected;
   if (!wallet) {
@@ -206,7 +150,57 @@ function renderHistory() {
     </div>`;
   });
 
-  historyDiv.innerHTML = `<h3>История игр</h3>` + listItems.join("");
+  historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
 }
 
+async function sendWinToServer(address, emojis) {
+  try {
+    await fetch('/api/wins', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        address,
+        emojis,
+        date: new Date().toISOString()
+      })
+    });
+  } catch (err) {
+    console.error("Ошибка отправки победы:", err);
+  }
+}
+
+async function fetchWinners() {
+  try {
+    const res = await fetch('/api/wins');
+    const data = await res.json();
+    renderWinners(data);
+  } catch (err) {
+    console.error("Ошибка загрузки победителей:", err);
+  }
+}
+
+function renderWinners(data) {
+  let winnersDiv = document.getElementById("winners");
+  if (!winnersDiv) {
+    winnersDiv = document.createElement("div");
+    winnersDiv.id = "winners";
+    winnersDiv.style.marginTop = "40px";
+    winnersDiv.innerHTML = "<h3>🏆 Победители</h3>";
+    document.body.appendChild(winnersDiv);
+  }
+
+  if (!data.length) {
+    winnersDiv.innerHTML += "<div>Победителей пока нет</div>";
+    return;
+  }
+
+  const list = data.map(win => {
+    const shortAddr = `${win.address.slice(0, 4)}...${win.address.slice(-3)}`;
+    return `<div>🎉 ${shortAddr} — ${win.emojis} (${new Date(win.date).toLocaleString()})</div>`;
+  });
+
+  winnersDiv.innerHTML = "<h3>🏆 Победители</h3>" + list.join("");
+}
+
+// Загрузка победителей при запуске
 fetchWinners();
