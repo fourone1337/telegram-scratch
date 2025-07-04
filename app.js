@@ -15,15 +15,17 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   buttonRootId: 'ton-connect'
 });
 
-// 2. Проверка подключения при загрузке
-tonConnectUI.connectionRestored.then(() => {
-  const wallet = tonConnectUI.connected;
+// 2. Обновление статуса при изменении подключения
+tonConnectUI.onStatusChange(wallet => {
+  const walletDisplay = document.getElementById("wallet-address");
+  const status = document.getElementById("status");
+
   if (wallet) {
     walletDisplay.textContent = `🟢 Кошелёк подключен: ${wallet.account.address}`;
     buyBtn.disabled = false;
     status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
   } else {
-    walletDisplay.textContent = "🔴 Кошелёк не подключён.";
+    walletDisplay.textContent = `🔴 Кошелёк не подключён.`;
     buyBtn.disabled = true;
     status.textContent = "Подключите кошелёк для начала игры.";
   }
