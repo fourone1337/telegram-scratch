@@ -1,6 +1,6 @@
 // pages/api/wins.js
 const BIN_ID = "6867bece8561e97a50316303";
-const API_KEY = "$2a$10$v97PDf5iapEJ8qAdzxlCYuKKmOtA7s9wE6llFmOfbNDlc3WYl1BXW"; // ← вставьте свой ключ
+const API_KEY = "$2a$10$..."; // ← вставьте свой ключ
 const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
 export default async function handler(req, res) {
