@@ -13,36 +13,37 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   buttonRootId: 'ton-connect'
 });
 
-// Обновление состояния интерфейса
 async function updateWalletStatus() {
   const wallet = await tonConnectUI.connected;
-  const fullAddress = wallet?.account?.address || "";
-  const shortAddress = fullAddress
-    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
-    : "🔴 Кошелёк не подключён.";
 
-  walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
-  buyBtn.disabled = !fullAddress;
-  status.textContent = fullAddress
-    ? "Нажмите «Купить билет», чтобы начать игру!"
-    : "Подключите кошелёк для начала игры.";
+  if (wallet && wallet.account && wallet.account.address) {
+    const fullAddress = wallet.account.address;
+    const shortAddress = `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`;
+    walletDisplay.textContent = `🟢 Кошелёк: ${shortAddress}`;
+    status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
+    buyBtn.disabled = false;
+  } else {
+    walletDisplay.textContent = "🔴 Кошелёк не подключён.";
+    status.textContent = "Подключите кошелёк для начала игры.";
+    buyBtn.disabled = true;
+  }
 }
 
 tonConnectUI.onStatusChange(updateWalletStatus);
 updateWalletStatus();
 
-buyBtn.onclick = () => {
-  tonConnectUI.connected.then(wallet => {
-    if (!wallet?.account?.address) {
-      alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
-      return;
-    }
+buyBtn.onclick = async () => {
+  const wallet = await tonConnectUI.connected;
 
-    currentTicket = generateTicket();
-    openedIndices = [];
-    status.textContent = "Выберите 3 ячейки, чтобы открыть";
-    renderTicket(currentTicket);
-  });
+  if (!wallet || !wallet.account || !wallet.account.address) {
+    alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
+    return;
+  }
+
+  currentTicket = generateTicket();
+  openedIndices = [];
+  status.textContent = "Выберите 3 ячейки, чтобы открыть";
+  renderTicket(currentTicket);
 };
 
 function generateTicket() {
@@ -102,13 +103,15 @@ function checkWin(ticket) {
 
   if (allSame) {
     status.textContent = "🎉 Поздравляем! Вы выиграли!";
-    const address = tonConnectUI.connected?.account?.address;
-    const emojis = openedEmojis.join('');
-    if (address) {
-      sendWinToServer(address, emojis);
-      fetchWinners();
-      window.addEventListener("focus", fetchWinners);
-    }
+    tonConnectUI.connected.then(wallet => {
+      const address = wallet?.account?.address;
+      const emojis = openedEmojis.join('');
+      if (address) {
+        sendWinToServer(address, emojis);
+        fetchWinners();
+        window.addEventListener("focus", fetchWinners);
+      }
+    });
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
