@@ -7,17 +7,14 @@ const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 const history = [];
 let currentTicket = null;
 let openedIndices = [];
+let currentWalletAddress = null;
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json',
   buttonRootId: 'ton-connect'
 });
 
-let currentWalletAddress = null;
-
 tonConnectUI.onStatusChange(wallet => {
-  console.log("📢 Изменился статус:", wallet);
-
   const fullAddress = wallet?.account?.address || "";
   const shortAddress = fullAddress
     ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
