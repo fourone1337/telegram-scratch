@@ -1,15 +1,14 @@
 {
   "name": "telegram-scratch",
   "version": "1.0.0",
-  "description": "TON Scratch Lottery",
-  "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "next": "^13.4.19",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
