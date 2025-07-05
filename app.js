@@ -219,3 +219,11 @@ async function fetchWinners() {
     console.error("Ошибка загрузки победителей:", err);
   }
 }
+
+const testButton = document.createElement("button");
+testButton.textContent = "🔗 Подключить кошелёк (тест)";
+testButton.style.marginTop = "20px";
+testButton.onclick = () => {
+  tonConnectUI.connect();
+};
+document.body.appendChild(testButton);
