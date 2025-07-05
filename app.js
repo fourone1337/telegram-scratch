@@ -13,10 +13,3 @@ setTimeout(() => {
     console.log("✅ Кнопка TON Connect появилась!");
   }
 }, 2000);
-
-const testButton = document.createElement("button");
-testButton.textContent = "🔗 Подключить кошелёк (тест вручную)";
-testButton.onclick = () => {
-  tonConnectUI.connect();
-};
-document.body.appendChild(testButton);
