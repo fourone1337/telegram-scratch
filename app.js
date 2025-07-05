@@ -13,29 +13,27 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   buttonRootId: 'ton-connect'
 });
 
-async function updateWalletStatus() {
-  const wallet = await tonConnectUI.connected;
+let currentWalletAddress = null;
 
-  if (wallet && wallet.account && wallet.account.address) {
-    const fullAddress = wallet.account.address;
-    const shortAddress = `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`;
-    walletDisplay.textContent = `🟢 Кошелёк: ${shortAddress}`;
-    status.textContent = "Нажмите «Купить билет», чтобы начать игру!";
-    buyBtn.disabled = false;
-  } else {
-    walletDisplay.textContent = "🔴 Кошелёк не подключён.";
-    status.textContent = "Подключите кошелёк для начала игры.";
-    buyBtn.disabled = true;
-  }
-}
+tonConnectUI.onStatusChange(wallet => {
+  console.log("📢 Изменился статус:", wallet);
 
-tonConnectUI.onStatusChange(updateWalletStatus);
-updateWalletStatus();
+  const fullAddress = wallet?.account?.address || "";
+  const shortAddress = fullAddress
+    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
+    : "🔴 Кошелёк не подключён.";
 
-buyBtn.onclick = async () => {
-  const wallet = await tonConnectUI.connected;
+  currentWalletAddress = fullAddress || null;
 
-  if (!wallet || !wallet.account || !wallet.account.address) {
+  walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
+  buyBtn.disabled = !fullAddress;
+  status.textContent = fullAddress
+    ? "Нажмите «Купить билет», чтобы начать игру!"
+    : "Подключите кошелёк для начала игры.";
+});
+
+buyBtn.onclick = () => {
+  if (!currentWalletAddress) {
     alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
     return;
   }
@@ -103,15 +101,13 @@ function checkWin(ticket) {
 
   if (allSame) {
     status.textContent = "🎉 Поздравляем! Вы выиграли!";
-    tonConnectUI.connected.then(wallet => {
-      const address = wallet?.account?.address;
-      const emojis = openedEmojis.join('');
-      if (address) {
-        sendWinToServer(address, emojis);
-        fetchWinners();
-        window.addEventListener("focus", fetchWinners);
-      }
-    });
+    const address = currentWalletAddress;
+    const emojis = openedEmojis.join('');
+    if (address) {
+      sendWinToServer(address, emojis);
+      fetchWinners();
+      window.addEventListener("focus", fetchWinners);
+    }
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
