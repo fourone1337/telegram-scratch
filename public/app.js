@@ -7,6 +7,7 @@ const history = [];
 let currentTicket = null;
 let openedIndices = [];
 let currentWalletAddress = null;
+const SERVER_URL = "https://ton-scratch-server.onrender.com";
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
@@ -141,7 +142,7 @@ function renderHistory() {
 
 async function sendWinToServer(address, emojis) {
   try {
-    await fetch('http://localhost:3001/api/wins', {
+    await fetch(`${SERVER_URL}/api/wins`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address, emojis, date: new Date().toISOString() })
@@ -153,7 +154,7 @@ async function sendWinToServer(address, emojis) {
 
 async function fetchWinners() {
   try {
-    const res = await fetch('http://localhost:3001/api/wins');
+    const res = await fetch(`${SERVER_URL}/api/wins`);
     const data = await res.json();
     renderWinners(data);
   } catch (err) {
