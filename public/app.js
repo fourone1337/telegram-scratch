@@ -4,12 +4,12 @@ const walletDisplay = document.getElementById("wallet-address");
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 const emojiRewards = {
-  "🍒": 0.5,
-  "⭐️": 1,
-  "🍋": 1.5,
-  "🔔": 2,
-  "7️⃣": 5,
-  "💎": 10
+  "🍒": 0.1,
+  "⭐️": 0.1,
+  "🍋": 0.1,
+  "🔔": 0.1,
+  "7️⃣": 0.1,
+  "💎": 0.1
 };
 
 const history = [];
