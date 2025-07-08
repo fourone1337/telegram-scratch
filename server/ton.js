@@ -12,9 +12,9 @@ const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/
   apiKey: TONCENTER_API_KEY
 }));
 
-const keyBytes = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
-const keyPair = TonWeb.utils.keyPairFromSeed(keyBytes);
-
+// ✅ Преобразование строго в Uint8Array (не Buffer!)
+const seedBytes = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
+const keyPair = TonWeb.utils.keyPairFromSeed(seedBytes);
 
 const WalletClass = tonweb.wallet.all['v4R2'];
 const wallet = new WalletClass(tonweb.provider, {
@@ -31,6 +31,7 @@ async function sendTonReward(toAddress, amountTon) {
   if (walletInfo.state !== 'active') {
     console.log("📦 Кошелёк не активирован. Выполняем deploy...");
 
+    // ✅ Используем Uint8Array ключ
     await wallet.deploy({ secretKey: keyPair.secretKey }).send();
 
     for (let i = 0; i < 10; i++) {
@@ -50,7 +51,7 @@ async function sendTonReward(toAddress, amountTon) {
   console.log(`🚀 Отправляем ${amountTon} TON на ${toAddress}...`);
 
   await wallet.methods.transfer({
-    secretKey: keyPair.secretKey,
+    secretKey: keyPair.secretKey, // ✅ Это теперь точно Uint8Array
     toAddress,
     amount: amountNano,
     seqno,
