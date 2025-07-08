@@ -4,7 +4,7 @@ const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 if (!SECRET_KEY) {
-  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что он задан.");
+  throw new Error("❌ SECRET_KEY не найден в .env.");
 }
 
 const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
@@ -20,24 +20,28 @@ const wallet = new WalletClass(tonweb.provider, {
   wc: 0
 });
 
-// Проверка и развёртывание кошелька при необходимости
+// Ручная проверка развёрнут ли кошелёк
 async function deployWalletIfNeeded() {
-  const isDeployed = await wallet.isDeployed();
+  const address = await wallet.getAddress();
+  const info = await tonweb.provider.getAddressInfo(address.toString());
+
+  const isDeployed = info && info.state === 'active';
+
   if (!isDeployed) {
-    console.log("📦 Кошелёк не развёрнут. Отправляем транзакцию для развёртывания...");
+    console.log("📦 Кошелёк не развёрнут. Разворачиваем...");
     await wallet.deploy(keyPair.secretKey).send();
     console.log("✅ Кошелёк развёрнут.");
   }
 }
 
-// Отправка TON на адрес победителя
+// Отправка TON
 async function sendTonReward(toAddress, amountTon) {
   await deployWalletIfNeeded();
 
   const seqno = await wallet.methods.seqno().call();
   const amountNano = TonWeb.utils.toNano(amountTon.toString());
 
-  console.log(`\n🚀 Отправляем ${amountTon} TON (${amountNano} nanoTON) на ${toAddress}...`);
+  console.log(`🚀 Отправляем ${amountTon} TON (${amountNano} nanoTON) на ${toAddress}...`);
 
   await wallet.methods.transfer({
     secretKey: keyPair.secretKey,
