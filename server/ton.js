@@ -1,20 +1,22 @@
 const TonWeb = require("tonweb");
-const bip39 = require("bip39");
+const nacl = require("tweetnacl");
 
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 if (!SECRET_KEY) {
-  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что файл существует и содержит SECRET_KEY=...");
+  throw new Error("❌ SECRET_KEY не найден в .env");
 }
 
 const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
   apiKey: TONCENTER_API_KEY
 }));
 
-// ✅ Преобразование строго в Uint8Array (не Buffer!)
-const seedBytes = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
-const keyPair = TonWeb.utils.keyPairFromSeed(seedBytes);
+// 🔐 seed (32 байта)
+const seed = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
+
+// ✅ получаем keyPair с secretKey длиной 64 байта
+const keyPair = nacl.sign.keyPair.fromSeed(seed);
 
 const WalletClass = tonweb.wallet.all['v4R2'];
 const wallet = new WalletClass(tonweb.provider, {
@@ -31,7 +33,6 @@ async function sendTonReward(toAddress, amountTon) {
   if (walletInfo.state !== 'active') {
     console.log("📦 Кошелёк не активирован. Выполняем deploy...");
 
-    // ✅ Используем Uint8Array ключ
     await wallet.deploy({ secretKey: keyPair.secretKey }).send();
 
     for (let i = 0; i < 10; i++) {
@@ -51,7 +52,7 @@ async function sendTonReward(toAddress, amountTon) {
   console.log(`🚀 Отправляем ${amountTon} TON на ${toAddress}...`);
 
   await wallet.methods.transfer({
-    secretKey: keyPair.secretKey, // ✅ Это теперь точно Uint8Array
+    secretKey: keyPair.secretKey, // ✅ теперь 64 байта Uint8Array
     toAddress,
     amount: amountNano,
     seqno,
