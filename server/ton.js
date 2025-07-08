@@ -1,4 +1,29 @@
+const TonWeb = require("tonweb");
+const bip39 = require("bip39");
+
+const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
+const SECRET_KEY = process.env.SECRET_KEY;
+
+if (!SECRET_KEY) {
+  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что файл существует и содержит SECRET_KEY=...");
+}
+
+const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
+  apiKey: TONCENTER_API_KEY
+}));
+
+const keyBytes = Buffer.from(SECRET_KEY, 'base64');
+const keyPair = TonWeb.utils.keyPairFromSeed(keyBytes);
+
+const WalletClass = tonweb.wallet.all['v4R2'];
+const wallet = new WalletClass(tonweb.provider, {
+  publicKey: keyPair.publicKey,
+  wc: 0
+});
+
 async function sendTonReward(toAddress, amountTon) {
+  console.log("✅ sendTonReward загружен");
+
   const address = await wallet.getAddress();
   const walletInfo = await tonweb.provider.getAddressInfo(address.toString());
 
@@ -34,3 +59,5 @@ async function sendTonReward(toAddress, amountTon) {
 
   console.log("✅ Транзакция отправлена!");
 }
+
+module.exports = { sendTonReward };
