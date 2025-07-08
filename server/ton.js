@@ -1,3 +1,4 @@
+// ton.js
 const TonWeb = require("tonweb");
 const nacl = require("tweetnacl");
 
@@ -8,17 +9,20 @@ if (!SECRET_KEY) {
   throw new Error("❌ SECRET_KEY не найден в .env");
 }
 
-const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
-  apiKey: TONCENTER_API_KEY
-}));
+const tonweb = new TonWeb(
+  new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
+    apiKey: TONCENTER_API_KEY
+  })
+);
 
-// 🔐 seed (32 байта)
-const seed = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
+// ✅ 1. Декодируем base64 → Uint8Array (32 байта)
+const seed = Uint8Array.from(Buffer.from(SECRET_KEY, "base64"));
 
-// ✅ получаем keyPair с secretKey длиной 64 байта
+// ✅ 2. Получаем пару ключей — secretKey длиной 64 байта!
 const keyPair = nacl.sign.keyPair.fromSeed(seed);
 
-const WalletClass = tonweb.wallet.all['v4R2'];
+// ✅ 3. Создаём кошелёк
+const WalletClass = tonweb.wallet.all["v4R2"];
 const wallet = new WalletClass(tonweb.provider, {
   publicKey: keyPair.publicKey,
   wc: 0
@@ -30,15 +34,15 @@ async function sendTonReward(toAddress, amountTon) {
   const address = await wallet.getAddress();
   const walletInfo = await tonweb.provider.getAddressInfo(address.toString());
 
-  if (walletInfo.state !== 'active') {
+  if (walletInfo.state !== "active") {
     console.log("📦 Кошелёк не активирован. Выполняем deploy...");
 
     await wallet.deploy({ secretKey: keyPair.secretKey }).send();
 
     for (let i = 0; i < 10; i++) {
-      await new Promise(res => setTimeout(res, 3000));
+      await new Promise((res) => setTimeout(res, 3000));
       const info = await tonweb.provider.getAddressInfo(address.toString());
-      if (info.state === 'active') {
+      if (info.state === "active") {
         console.log("✅ Кошелёк успешно активирован.");
         break;
       }
@@ -52,7 +56,7 @@ async function sendTonReward(toAddress, amountTon) {
   console.log(`🚀 Отправляем ${amountTon} TON на ${toAddress}...`);
 
   await wallet.methods.transfer({
-    secretKey: keyPair.secretKey, // ✅ теперь 64 байта Uint8Array
+    secretKey: keyPair.secretKey, // ✅ ЭТО 64-байтовый Uint8Array
     toAddress,
     amount: amountNano,
     seqno,
