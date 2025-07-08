@@ -1,0 +1,8 @@
+{
+  "manifest_version": "0.1.0",
+  "url": "https://telegram-scratch-two.vercel.app",
+  "name": "TON Scratch Lottery",
+  "iconUrl": "https://telegram-scratch.vercel.app/icon.png",
+  "termsOfUseUrl": "https://telegram-scratch.vercel.app/terms",
+  "privacyPolicyUrl": "https://telegram-scratch.vercel.app/privacy"
+}

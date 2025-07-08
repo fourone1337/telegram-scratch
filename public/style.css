@@ -1,0 +1,48 @@
+body {
+  font-family: sans-serif;
+  background: #f8f9fa;
+  text-align: center;
+  padding: 40px 20px;
+  margin: 0;
+}
+
+button {
+  display: block;
+  margin: 15px auto;
+  padding: 12px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#status {
+  margin-top: 25px;
+  font-size: 16px;
+  color: #444;
+}
+
+#ticket-container div {
+  width: 60px;
+  height: 60px;
+  background-color: #888;
+  border-radius: 8px;
+  font-size: 36px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ton-connect {
+  display: flex;
+  justify-content: center;
+  margin: 10px auto;
+}
