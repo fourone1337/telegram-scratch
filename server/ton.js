@@ -1,4 +1,3 @@
-// ton.js
 const TonWeb = require("tonweb");
 const nacl = require("tweetnacl");
 
@@ -15,15 +14,14 @@ const tonweb = new TonWeb(
   })
 );
 
-// ✅ 1. Декодируем base64 → Uint8Array (32 байта)
+// ✅ 1. Декодируем base64 → Uint8Array (32 байта seed)
 const seed = Uint8Array.from(Buffer.from(SECRET_KEY, "base64"));
 
-// ✅ 2. Получаем пару ключей (secretKey должен быть ровно 64 байта)
+// ✅ 2. Получаем пару ключей (secretKey должен быть 64 байта)
 const rawKeyPair = nacl.sign.keyPair.fromSeed(seed);
-const secretKey = Uint8Array.from(rawKeyPair.secretKey); // 👈 гарантированный тип
+const secretKey = Uint8Array.from(rawKeyPair.secretKey);
 const publicKey = Uint8Array.from(rawKeyPair.publicKey);
 const keyPair = { publicKey, secretKey };
-
 
 // ✅ 3. Создаём кошелёк
 const WalletClass = tonweb.wallet.all["v4R2"];
@@ -39,15 +37,18 @@ async function sendTonReward(toAddress, amountTon) {
   const walletInfo = await tonweb.provider.getAddressInfo(address.toString());
 
   if (walletInfo.state !== "active") {
-  console.log("📦 Кошелёк не активирован. Выполняем deploy...");
+    console.log("📦 Кошелёк не активирован. Выполняем deploy...");
 
-  console.log("🔍 Тип keyPair.secretKey:", keyPair.secretKey.constructor.name);
-  console.log("🔍 Длина keyPair.secretKey:", keyPair.secretKey.length);
-  console.log("🔍 Первый байт:", keyPair.secretKey[0]);
+    console.log("🔍 Тип keyPair.secretKey:", keyPair.secretKey.constructor.name);
+    console.log("🔍 Длина keyPair.secretKey:", keyPair.secretKey.length);
+    console.log("🔍 Первый байт:", keyPair.secretKey[0]);
 
-  const deploy = wallet.createDeploy();
-  await deploy.send(keyPair.secretKey);
+    // ✅ Исправленный способ deploy
+    await wallet.methods.deploy().send({
+      secretKey: keyPair.secretKey
+    });
 
+    // ⏳ Ждём активации
     for (let i = 0; i < 10; i++) {
       await new Promise((res) => setTimeout(res, 3000));
       const info = await tonweb.provider.getAddressInfo(address.toString());
@@ -65,7 +66,7 @@ async function sendTonReward(toAddress, amountTon) {
   console.log(`🚀 Отправляем ${amountTon} TON на ${toAddress}...`);
 
   await wallet.methods.transfer({
-    secretKey: keyPair.secretKey, // ✅ ЭТО 64-байтовый Uint8Array
+    secretKey: keyPair.secretKey,
     toAddress,
     amount: amountNano,
     seqno,
