@@ -12,8 +12,9 @@ const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/
   apiKey: TONCENTER_API_KEY
 }));
 
-const keyBytes = Buffer.from(SECRET_KEY, 'base64');
+const keyBytes = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
 const keyPair = TonWeb.utils.keyPairFromSeed(keyBytes);
+
 
 const WalletClass = tonweb.wallet.all['v4R2'];
 const wallet = new WalletClass(tonweb.provider, {
