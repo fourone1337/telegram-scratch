@@ -44,7 +44,7 @@ button:disabled {
 #ticket-container div {
   width: 60px;
   height: 60px;
-  background-color: rgba(136, 136, 136, 0.5); /* Прозрачность */
+  background-color: rgba(136, 136, 136, 0.1); /* Прозрачность */
   border-radius: 8px;
   font-size: 36px;
   color: white;
