@@ -80,7 +80,8 @@ function renderTicket(ticket) {
     const cell = document.createElement("div");
     cell.style.width = "60px";
     cell.style.height = "60px";
-    cell.style.backgroundColor = "#888";
+    //cell.style.backgroundColor = "#888";
+    cell.style.backgroundColor = "rgba(136, 136, 136, 0.5)";
     cell.style.borderRadius = "8px";
     cell.style.display = "flex";
     cell.style.alignItems = "center";
