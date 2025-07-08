@@ -1,11 +1,10 @@
 const TonWeb = require("tonweb");
 
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
-const FROM_WALLET = process.env.FROM_WALLET;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 if (!SECRET_KEY) {
-  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что файл существует и содержит SECRET_KEY=...");
+  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что он задан.");
 }
 
 const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
@@ -21,7 +20,20 @@ const wallet = new WalletClass(tonweb.provider, {
   wc: 0
 });
 
+// Проверка и развёртывание кошелька при необходимости
+async function deployWalletIfNeeded() {
+  const isDeployed = await wallet.isDeployed();
+  if (!isDeployed) {
+    console.log("📦 Кошелёк не развёрнут. Отправляем транзакцию для развёртывания...");
+    await wallet.deploy(keyPair.secretKey).send();
+    console.log("✅ Кошелёк развёрнут.");
+  }
+}
+
+// Отправка TON на адрес победителя
 async function sendTonReward(toAddress, amountTon) {
+  await deployWalletIfNeeded();
+
   const seqno = await wallet.methods.seqno().call();
   const amountNano = TonWeb.utils.toNano(amountTon.toString());
 
