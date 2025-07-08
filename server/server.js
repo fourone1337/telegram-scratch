@@ -1,46 +1,57 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const fs = require('fs');
-const { sendTonReward } = require('./ton');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Подключение к Supabase
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
 app.use(cors());
 app.use(bodyParser.json());
 
-const dbFile = './wins.json';
-if (!fs.existsSync(dbFile)) fs.writeFileSync(dbFile, '[]');
-
 // Получить список победителей
-app.get('/api/wins', (req, res) => {
-  const wins = JSON.parse(fs.readFileSync(dbFile));
-  res.json(wins);
+app.get('/api/wins', async (req, res) => {
+  const { data, error } = await supabase
+    .from('wins')
+    .select('*')
+    .order('date', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error('Ошибка получения победителей:', error);
+    return res.status(500).json({ error: 'Ошибка получения данных' });
+  }
+
+  res.json(data);
 });
 
-// Сохранить нового победителя и выдать приз
+// Сохранить нового победителя
 app.post('/api/wins', async (req, res) => {
   const { address, emojis, date } = req.body;
+
   if (!address || !emojis || !date) {
     return res.status(400).json({ error: "Некорректные данные" });
   }
 
-  const win = { address, emojis, date };
-  const wins = JSON.parse(fs.readFileSync(dbFile));
-  wins.unshift(win);
-  fs.writeFileSync(dbFile, JSON.stringify(wins, null, 2));
+  const { error } = await supabase
+    .from('wins')
+    .insert([{ address, emojis, date }]);
 
-  try {
-    await sendTonReward(address); // здесь будет реальная отправка TON
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Ошибка при отправке TON:", err);
-    res.status(500).json({ error: "Не удалось выдать приз" });
+  if (error) {
+    console.error('Ошибка записи победы:', error);
+    return res.status(500).json({ error: 'Ошибка записи' });
   }
+
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Сервер запущен на http://localhost:${PORT}`);
+  console.log(`🚀 Сервер запущен на порту ${PORT}`);
 });
