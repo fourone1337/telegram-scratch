@@ -45,7 +45,8 @@ async function sendTonReward(toAddress, amountTon) {
   console.log("🔍 Длина keyPair.secretKey:", keyPair.secretKey.length);
   console.log("🔍 Первый байт:", keyPair.secretKey[0]);
 
-  await wallet.deploy({ secretKey: keyPair.secretKey }).send();
+  const deploy = wallet.createDeploy();
+  await deploy.send(keyPair.secretKey);
 
     for (let i = 0; i < 10; i++) {
       await new Promise((res) => setTimeout(res, 3000));
