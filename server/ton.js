@@ -8,11 +8,11 @@ const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/
   apiKey: TONCENTER_API_KEY
 }));
 
-// Восстановим ключи из seed (в hex или base64)
-const keyPair = TonWeb.utils.keyPairFromSeed(TonWeb.utils.base64ToBytes(SECRET_KEY));
+const keyBytes = Buffer.from(SECRET_KEY, 'base64'); // либо 'base64' если используешь другой формат
+const keyPair = TonWeb.utils.keyPairFromSeed(keyBytes);
 
-const WalletClass = TonWeb.wallet.all.v3R2;
-const wallet = new WalletClass(tonweb.provider, {
+const { WalletV3R2 } = TonWeb.wallet;
+const wallet = new WalletV3R2(tonweb.provider, {
   publicKey: keyPair.publicKey,
   wc: 0
 });
