@@ -1,47 +1,60 @@
 const TonWeb = require("tonweb");
+const bip39 = require("bip39");
 
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
+const FROM_WALLET = process.env.FROM_WALLET;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 if (!SECRET_KEY) {
-  throw new Error("❌ SECRET_KEY не найден в .env.");
+  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что файл существует и содержит SECRET_KEY=...");
 }
 
 const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
   apiKey: TONCENTER_API_KEY
 }));
 
-const keyBytes = Buffer.from(SECRET_KEY, 'base64');
+const keyBytes = Buffer.from(SECRET_KEY, 'base64'); // 32 байта seed
 const keyPair = TonWeb.utils.keyPairFromSeed(keyBytes);
 
-const WalletClass = tonweb.wallet.all['v4R2'];
+const WalletClass = tonweb.wallet.all['v4R2']; // TON Space использует v4R2
 const wallet = new WalletClass(tonweb.provider, {
   publicKey: keyPair.publicKey,
   wc: 0
 });
 
-// Ручная проверка развёрнут ли кошелёк
-async function deployWalletIfNeeded() {
-  const address = await wallet.getAddress();
-  const info = await tonweb.provider.getAddressInfo(address.toString());
+let isWalletOpened = false;
 
-  const isDeployed = info && info.state === 'active';
-
-  if (!isDeployed) {
-    console.log("📦 Кошелёк не развёрнут. Разворачиваем...");
-    await wallet.deploy(keyPair.secretKey).send();
-    console.log("✅ Кошелёк развёрнут.");
-  }
-}
-
-// Отправка TON
 async function sendTonReward(toAddress, amountTon) {
-  await deployWalletIfNeeded();
+  if (!isWalletOpened) {
+    await wallet.open();
+    isWalletOpened = true;
+  }
+
+  const address = await wallet.getAddress();
+  const walletInfo = await tonweb.provider.getAddressInfo(address.toString());
+
+  // Deploy кошелька, если он не активен
+  if (walletInfo.state !== 'active') {
+    console.log("📦 Кошелёк не активирован. Выполняем deploy...");
+
+    await wallet.deploy({ secretKey: keyPair.secretKey }).send();
+
+    // Ждём активации (до 10 попыток, по 3 секунды)
+    for (let i = 0; i < 10; i++) {
+      await new Promise(res => setTimeout(res, 3000));
+      const info = await tonweb.provider.getAddressInfo(address.toString());
+      if (info.state === 'active') {
+        console.log("✅ Кошелёк успешно активирован.");
+        break;
+      }
+      if (i === 9) throw new Error("❌ Кошелёк не активировался после deploy.");
+    }
+  }
 
   const seqno = await wallet.methods.seqno().call();
   const amountNano = TonWeb.utils.toNano(amountTon.toString());
 
-  console.log(`🚀 Отправляем ${amountTon} TON (${amountNano} nanoTON) на ${toAddress}...`);
+  console.log(`\n🚀 Отправляем ${amountTon} TON (${amountNano} nanoTON) на ${toAddress}...`);
 
   await wallet.methods.transfer({
     secretKey: keyPair.secretKey,
