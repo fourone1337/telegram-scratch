@@ -7,7 +7,7 @@ const history = [];
 let currentTicket = null;
 let openedIndices = [];
 let currentWalletAddress = null;
-const SERVER_URL = "https://ton-scratch-server.onrender.com";
+const SERVER_URL = "https://telegram-scratch.onrender.com";
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
