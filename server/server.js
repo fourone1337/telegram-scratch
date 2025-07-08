@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+const { sendTonReward } = require('./ton');
 require('dotenv').config();
 
 const app = express();
@@ -34,7 +35,7 @@ app.get('/api/wins', async (req, res) => {
 
 // Сохранить нового победителя
 app.post('/api/wins', async (req, res) => {
-  const { address, emojis, date } = req.body;
+  const { address, emojis, reward, date } = req.body;
 
   if (!address || !emojis || !date) {
     return res.status(400).json({ error: "Некорректные данные" });
@@ -42,14 +43,22 @@ app.post('/api/wins', async (req, res) => {
 
   const { error } = await supabase
     .from('wins')
-    .insert([{ address, emojis, date }]);
+    .insert([{ address, emojis, reward, date }]);
 
   if (error) {
     console.error('Ошибка записи победы:', error);
     return res.status(500).json({ error: 'Ошибка записи' });
   }
 
-  res.json({ success: true });
+  try {
+    if (reward > 0) {
+      await sendTonReward(address, reward);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Ошибка отправки TON:', err);
+    res.status(500).json({ error: 'Ошибка отправки TON' });
+  }
 });
 
 app.listen(PORT, () => {
