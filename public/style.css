@@ -29,7 +29,7 @@ button:disabled {
   color: #444;
 }
 
-#ticket-container div {
+/*#ticket-container div {
   width: 60px;
   height: 60px;
   background-color: #888;
@@ -39,6 +39,19 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
+}*/
+
+#ticket-container div {
+  width: 60px;
+  height: 60px;
+  background-color: rgba(136, 136, 136, 0.5); /* Прозрачность */
+  border-radius: 8px;
+  font-size: 36px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
 }
 
 #ton-connect {
