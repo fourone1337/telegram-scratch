@@ -18,8 +18,12 @@ const tonweb = new TonWeb(
 // ✅ 1. Декодируем base64 → Uint8Array (32 байта)
 const seed = Uint8Array.from(Buffer.from(SECRET_KEY, "base64"));
 
-// ✅ 2. Получаем пару ключей — secretKey длиной 64 байта!
-const keyPair = nacl.sign.keyPair.fromSeed(seed);
+// ✅ 2. Получаем пару ключей (secretKey должен быть ровно 64 байта)
+const rawKeyPair = nacl.sign.keyPair.fromSeed(seed);
+const secretKey = Uint8Array.from(rawKeyPair.secretKey); // 👈 гарантированный тип
+const publicKey = Uint8Array.from(rawKeyPair.publicKey);
+const keyPair = { publicKey, secretKey };
+
 
 // ✅ 3. Создаём кошелёк
 const WalletClass = tonweb.wallet.all["v4R2"];
@@ -35,9 +39,13 @@ async function sendTonReward(toAddress, amountTon) {
   const walletInfo = await tonweb.provider.getAddressInfo(address.toString());
 
   if (walletInfo.state !== "active") {
-    console.log("📦 Кошелёк не активирован. Выполняем deploy...");
+  console.log("📦 Кошелёк не активирован. Выполняем deploy...");
 
-    await wallet.deploy({ secretKey: keyPair.secretKey }).send();
+  console.log("🔍 Тип keyPair.secretKey:", keyPair.secretKey.constructor.name);
+  console.log("🔍 Длина keyPair.secretKey:", keyPair.secretKey.length);
+  console.log("🔍 Первый байт:", keyPair.secretKey[0]);
+
+  await wallet.deploy({ secretKey: keyPair.secretKey }).send();
 
     for (let i = 0; i < 10; i++) {
       await new Promise((res) => setTimeout(res, 3000));
