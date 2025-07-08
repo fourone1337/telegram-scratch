@@ -21,14 +21,7 @@ const wallet = new WalletClass(tonweb.provider, {
   wc: 0
 });
 
-let isWalletOpened = false;
-
 async function sendTonReward(toAddress, amountTon) {
-  if (!isWalletOpened) {
-    await wallet.open();
-    isWalletOpened = true;
-  }
-
   const seqno = await wallet.methods.seqno().call();
   const amountNano = TonWeb.utils.toNano(amountTon.toString());
 
