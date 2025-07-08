@@ -4,15 +4,19 @@ const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 const FROM_WALLET = process.env.FROM_WALLET;
 const SECRET_KEY = process.env.SECRET_KEY;
 
+if (!SECRET_KEY) {
+  throw new Error("❌ SECRET_KEY не найден в .env. Убедись, что файл существует и содержит SECRET_KEY=...");
+}
+
 const tonweb = new TonWeb(new TonWeb.HttpProvider("https://toncenter.com/api/v2/jsonRPC", {
   apiKey: TONCENTER_API_KEY
 }));
 
-const keyBytes = Buffer.from(SECRET_KEY, 'base64'); // либо 'base64' если используешь другой формат
+const keyBytes = Buffer.from(SECRET_KEY, 'base64');
 const keyPair = TonWeb.utils.keyPairFromSeed(keyBytes);
 
-const { WalletV3R2 } = TonWeb.wallet;
-const wallet = new WalletV3R2(tonweb.provider, {
+const WalletClass = tonweb.wallet.all['v4R2'];
+const wallet = new WalletClass(tonweb.provider, {
   publicKey: keyPair.publicKey,
   wc: 0
 });

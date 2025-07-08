@@ -2,8 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-const { sendTonReward } = require('./ton');
 require('dotenv').config();
+const { sendTonReward } = require('./ton');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
