@@ -3,23 +3,13 @@ const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
-const emojiRewards = {
-  "🍒": 0.1,
-  "⭐️": 0.1,
-  "🍋": 0.1,
-  "🔔": 0.1,
-  "7️⃣": 0.1,
-  "💎": 0.1
-};
-
 const history = [];
 let currentTicket = null;
 let openedIndices = [];
 let currentWalletAddress = null;
-const SERVER_URL = "https://telegram-scratch.onrender.com";
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
+  manifestUrl: 'https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json',
   buttonRootId: 'ton-connect'
 });
 
@@ -80,8 +70,7 @@ function renderTicket(ticket) {
     const cell = document.createElement("div");
     cell.style.width = "60px";
     cell.style.height = "60px";
-    //cell.style.backgroundColor = "#888";
-    cell.style.backgroundColor = "rgba(136, 136, 136, 0.1)";
+    cell.style.backgroundColor = "#888";
     cell.style.borderRadius = "8px";
     cell.style.display = "flex";
     cell.style.alignItems = "center";
@@ -107,14 +96,11 @@ function checkWin(ticket) {
   const allSame = openedEmojis.every(e => e === openedEmojis[0]);
 
   if (allSame) {
-    const symbol = openedEmojis[0];
-    const reward = emojiRewards[symbol] || 0;
-    status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
-
+    status.textContent = "🎉 Поздравляем! Вы выиграли!";
     const address = currentWalletAddress;
     const emojis = openedEmojis.join('');
     if (address) {
-      sendWinToServer(address, emojis, reward);
+      sendWinToServer(address, emojis);
       fetchWinners();
       window.addEventListener("focus", fetchWinners);
     }
@@ -153,12 +139,12 @@ function renderHistory() {
   historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
 }
 
-async function sendWinToServer(address, emojis, reward) {
+async function sendWinToServer(address, emojis) {
   try {
-    await fetch(`${SERVER_URL}/api/wins`, {
+    await fetch('/api/wins', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, emojis, reward, date: new Date().toISOString() })
+      body: JSON.stringify({ address, emojis, date: new Date().toISOString() })
     });
   } catch (err) {
     console.error("Ошибка отправки победы:", err);
@@ -167,7 +153,7 @@ async function sendWinToServer(address, emojis, reward) {
 
 async function fetchWinners() {
   try {
-    const res = await fetch(`${SERVER_URL}/api/wins`);
+    const res = await fetch('/api/wins');
     const data = await res.json();
     renderWinners(data);
   } catch (err) {
@@ -192,8 +178,7 @@ function renderWinners(data) {
 
   const list = data.map(win => {
     const shortAddr = `${win.address.slice(0, 4)}...${win.address.slice(-3)}`;
-    const rewardInfo = win.reward ? ` — 💰 ${win.reward} TON` : "";
-    return `<div>🎉 ${shortAddr} — ${win.emojis}${rewardInfo} (${new Date(win.date).toLocaleString()})</div>`;
+    return `<div>🎉 ${shortAddr} — ${win.emojis} (${new Date(win.date).toLocaleString()})</div>`;
   });
 
   winnersDiv.innerHTML = "<h3>🏆 Победители</h3>" + list.join("");
