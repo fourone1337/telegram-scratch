@@ -43,9 +43,9 @@ async function initWallet() {
   sender = client.open(wallet);
   secretKey = keyPair.secretKey;
 
-  // 📦 Проверка, развёрнут ли кошелёк
+  // 🧠 Проверка: развёрнут ли кошелёк
   const address = wallet.address;
-  const block = await client.getLastBlock();
+  const block = await client.getLastBlockInfo();
   const info = await client.getAccount(block.last.seqno, address);
 
   if (info.account.state.type !== 'active') {
