@@ -3,11 +3,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
-const { sendTonReward } = require('./ton'); // 👈 Правильный импорт
+const { sendTonReward } = require('./ton');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Подключение к Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
@@ -16,6 +17,7 @@ const supabase = createClient(
 app.use(cors());
 app.use(bodyParser.json());
 
+// Получить список победителей
 app.get('/api/wins', async (req, res) => {
   const { data, error } = await supabase
     .from('wins')
@@ -31,6 +33,7 @@ app.get('/api/wins', async (req, res) => {
   res.json(data);
 });
 
+// Сохранить нового победителя
 app.post('/api/wins', async (req, res) => {
   const { address, emojis, reward, date } = req.body;
 
@@ -38,15 +41,13 @@ app.post('/api/wins', async (req, res) => {
     return res.status(400).json({ error: "Некорректные данные" });
   }
 
-  console.log("📥 Новая заявка на победу:", { address, emojis, reward, date });
-
   const { error } = await supabase
     .from('wins')
     .insert([{ address, emojis, reward, date }]);
 
   if (error) {
-    console.error('❌ Ошибка записи победы в Supabase:', error.message);
-    return res.status(500).json({ error: error.message });
+    console.error('Ошибка записи победы:', error);
+    return res.status(500).json({ error: 'Ошибка записи' });
   }
 
   try {
@@ -55,7 +56,7 @@ app.post('/api/wins', async (req, res) => {
     }
     res.json({ success: true });
   } catch (err) {
-    console.error('❌ Ошибка отправки TON:', err.message || err);
+    console.error('Ошибка отправки TON:', err);
     res.status(500).json({ error: 'Ошибка отправки TON' });
   }
 });
