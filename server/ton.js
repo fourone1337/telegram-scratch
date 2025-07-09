@@ -1,7 +1,6 @@
 const { TonClient, WalletContractV4, internal } = require('@ton/ton');
 const { mnemonicToPrivateKey } = require('@ton/crypto');
 const { mnemonicValidate, mnemonicToSeedSync } = require('bip39');
-const { fromBase64 } = require('@ton/crypto');
 require('dotenv').config();
 
 const { TONCENTER_API_KEY, SECRET_KEY } = process.env;
@@ -28,10 +27,11 @@ async function initWallet() {
     console.log("🔑 Ключ получен из мнемоники");
   } else {
     // 📦 Base64 seed
-    const seed = fromBase64(SECRET_KEY);
+    const seed = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
     if (seed.length !== 32) throw new Error("❌ Base64 seed должен быть 32 байта");
-    const mnemonic = Array(24).fill("abandon"); // placeholder
-    key = await mnemonicToPrivateKey(mnemonic); // временный хак
+
+    const mnemonic = Array(24).fill("abandon"); // заглушка
+    key = await mnemonicToPrivateKey(mnemonic);
     key.secretKey = seed;
     console.log("🔑 Ключ получен из base64 seed");
   }
