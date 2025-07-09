@@ -1,15 +1,26 @@
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
+const balanceDisplay = document.getElementById("balance-display");
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
+const emojiRewards = {
+  "🍒": 0.1,
+  "⭐️": 0.2,
+  "🍋": 0.3,
+  "🔔": 0.4,
+  "7️⃣": 0.5,
+  "💎": 1.0
+};
+
 const history = [];
 let currentTicket = null;
 let openedIndices = [];
 let currentWalletAddress = null;
+const SERVER_URL = "http://localhost:3001";
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://telegram-scratch-yhgb.vercel.app/tonconnect-manifest.json',
+  manifestUrl: 'tonconnect-manifest.json',
   buttonRootId: 'ton-connect'
 });
 
@@ -26,6 +37,24 @@ tonConnectUI.onStatusChange(wallet => {
   status.textContent = fullAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
+
+  if (currentWalletAddress) {
+    loadBalance(currentWalletAddress);
+  } else {
+    balanceDisplay.textContent = "💰 Баланс: —";
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const refreshBtn = document.createElement("button");
+  refreshBtn.textContent = "🔄 Обновить баланс";
+  refreshBtn.style.marginTop = "10px";
+  refreshBtn.onclick = () => {
+    if (currentWalletAddress) {
+      loadBalance(currentWalletAddress);
+    }
+  };
+  balanceDisplay?.insertAdjacentElement("afterend", refreshBtn);
 });
 
 buyBtn.onclick = () => {
@@ -38,6 +67,7 @@ buyBtn.onclick = () => {
   openedIndices = [];
   status.textContent = "Выберите 3 ячейки, чтобы открыть";
   renderTicket(currentTicket);
+  loadBalance(currentWalletAddress);
 };
 
 function generateTicket() {
@@ -70,7 +100,7 @@ function renderTicket(ticket) {
     const cell = document.createElement("div");
     cell.style.width = "60px";
     cell.style.height = "60px";
-    cell.style.backgroundColor = "#888";
+    cell.style.backgroundColor = "rgba(136, 136, 136, 0.1)";
     cell.style.borderRadius = "8px";
     cell.style.display = "flex";
     cell.style.alignItems = "center";
@@ -96,13 +126,16 @@ function checkWin(ticket) {
   const allSame = openedEmojis.every(e => e === openedEmojis[0]);
 
   if (allSame) {
-    status.textContent = "🎉 Поздравляем! Вы выиграли!";
+    const symbol = openedEmojis[0];
+    const reward = emojiRewards[symbol] || 0;
+    status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
+
     const address = currentWalletAddress;
     const emojis = openedEmojis.join('');
     if (address) {
-      sendWinToServer(address, emojis);
+      sendWinToServer(address, emojis, reward);
       fetchWinners();
-      window.addEventListener("focus", fetchWinners);
+      loadBalance(address);
     }
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
@@ -139,21 +172,38 @@ function renderHistory() {
   historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
 }
 
-async function sendWinToServer(address, emojis) {
+async function sendWinToServer(address, emojis, reward) {
   try {
-    await fetch('/api/wins', {
+    await fetch(`${SERVER_URL}/api/wins`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, emojis, date: new Date().toISOString() })
+      body: JSON.stringify({ address, emojis, reward, date: new Date().toISOString() })
+    });
+
+    await fetch(`${SERVER_URL}/api/topup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, amount: reward })
     });
   } catch (err) {
     console.error("Ошибка отправки победы:", err);
   }
 }
 
+async function loadBalance(address) {
+  try {
+    const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
+    const data = await res.json();
+    balanceDisplay.textContent = `💰 Баланс: ${data.balance} TON`;
+  } catch (err) {
+    balanceDisplay.textContent = "💰 Баланс: —";
+    console.error("Ошибка загрузки баланса:", err);
+  }
+}
+
 async function fetchWinners() {
   try {
-    const res = await fetch('/api/wins');
+    const res = await fetch(`${SERVER_URL}/api/wins`);
     const data = await res.json();
     renderWinners(data);
   } catch (err) {
@@ -178,7 +228,8 @@ function renderWinners(data) {
 
   const list = data.map(win => {
     const shortAddr = `${win.address.slice(0, 4)}...${win.address.slice(-3)}`;
-    return `<div>🎉 ${shortAddr} — ${win.emojis} (${new Date(win.date).toLocaleString()})</div>`;
+    const rewardInfo = win.reward ? ` — 💰 ${win.reward} TON` : "";
+    return `<div>🎉 ${shortAddr} — ${win.emojis}${rewardInfo} (${new Date(win.date).toLocaleString()})</div>`;
   });
 
   winnersDiv.innerHTML = "<h3>🏆 Победители</h3>" + list.join("");
