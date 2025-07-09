@@ -17,6 +17,7 @@ async function initWallet() {
   if (wallet && sender && secretKey) return;
 
   let keyPair;
+
   if (SECRET_KEY.trim().includes(' ')) {
     // 🧠 Мнемоника
     const mnemonic = SECRET_KEY.trim().split(/\s+/);
@@ -26,40 +27,53 @@ async function initWallet() {
     keyPair = await mnemonicToPrivateKey(mnemonic);
     console.log("🔑 Ключ получен из мнемоники");
   } else {
-    // 📦 Base64 seed → keyPair
+    // 📦 Base64 seed
     const seed = Buffer.from(SECRET_KEY, 'base64');
     if (seed.length !== 32) throw new Error("❌ Base64 seed должен быть 32 байта");
-
-    keyPair = keyPairFromSeed(seed); // ← получаем 64-байтный секретный ключ
+    keyPair = keyPairFromSeed(seed);
     console.log("🔑 Ключ получен из base64 seed");
   }
 
   wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
   sender = client.open(wallet);
   secretKey = keyPair.secretKey;
+
+  // 🚀 Проверка и развёртывание кошелька
+  const address = await wallet.address();
+  const info = await client.getAccountLite(address);
+
+  if (info.account.state.type !== 'active') {
+    console.log("📦 Кошелёк не развёрнут — отправляем deploy...");
+    await sender.deploy(secretKey);
+    console.log("✅ Кошелёк развёрнут");
+  }
 }
 
 async function sendTonReward(toAddress, amountTon) {
-  await initWallet();
+  try {
+    await initWallet();
 
-  const seqno = await sender.getSeqno();
-  const amountNano = BigInt(Math.floor(parseFloat(amountTon) * 1e9));
+    const seqno = await sender.getSeqno();
+    const amountNano = BigInt(Math.floor(parseFloat(amountTon) * 1e9));
 
-  console.log(`🚀 Перевод ${amountTon} TON на ${toAddress} (seqno ${seqno})`);
+    console.log(`🚀 Перевод ${amountTon} TON на ${toAddress} (seqno ${seqno})`);
 
-  await sender.sendTransfer({
-    secretKey,
-    seqno,
-    messages: [
-      internal({
-        to: toAddress,
-        value: amountNano,
-        bounce: false
-      })
-    ]
-  });
+    await sender.sendTransfer({
+      secretKey,
+      seqno,
+      messages: [
+        internal({
+          to: toAddress,
+          value: amountNano,
+          bounce: false
+        })
+      ]
+    });
 
-  console.log("✅ Транзакция отправлена!");
+    console.log("✅ Транзакция отправлена!");
+  } catch (err) {
+    console.error("❌ Ошибка отправки TON:", err.response?.data || err.message || err);
+  }
 }
 
 module.exports = { sendTonReward };
