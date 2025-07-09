@@ -1,42 +1,55 @@
-const TonWeb = require('tonweb');
+const { TonClient, WalletContractV4, internal } = require('@ton/ton');
+const { mnemonicToPrivateKey } = require('@ton/crypto');
+const { Address, toNano } = require('@ton/core');
 require('dotenv').config();
 
+// Загрузка переменных окружения
+const SECRET_KEY = process.env.SECRET_KEY; // Мнемоника
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
-const SECRET_KEY = process.env.SECRET_KEY;
 
-if (!SECRET_KEY) {
-  throw new Error('❌ SECRET_KEY не найден в .env');
+if (!SECRET_KEY || !TONCENTER_API_KEY) {
+  throw new Error('❌ SECRET_KEY или TONCENTER_API_KEY не найдены в .env');
 }
 
-const provider = new TonWeb.HttpProvider('https://toncenter.com/api/v2/jsonRPC', {
-  apiKey: TONCENTER_API_KEY,
-});
+// Основная функция отправки TON — уже с готовым адресом, суммой и условием
+async function sendTonRewardIfWin({ address, emojis, reward }) {
+  const winning = checkWin(emojis); // 🎰 Проверка выигрыша по эмоджи
+  if (!winning || reward <= 0) {
+    console.log('❌ Не выиграл — TON не отправлены.');
+    return;
+  }
 
-const tonweb = new TonWeb(provider);
-const keyPair = TonWeb.utils.keyPairFromSeed(Buffer.from(SECRET_KEY, 'base64'));
+  const toncenterEndpoint = `https://toncenter.com/api/v2/jsonRPC?api_key=${TONCENTER_API_KEY}`;
+  const client = new TonClient({ endpoint: toncenterEndpoint });
 
-const wallet = tonweb.wallet.create({
-  publicKey: keyPair.publicKey,
-  wc: 0,
-  type: 'v4R2'
-});
+  const keyPair = await mnemonicToPrivateKey(SECRET_KEY.split(' '));
+  const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
+  const walletContract = client.open(wallet);
 
-async function sendTonReward(toAddress, amountTon) {
-  const seqno = await wallet.methods.seqno().call();
-  const amountNano = TonWeb.utils.toNano(amountTon.toString());
-  const validUntil = Math.floor(Date.now() / 1000) + 600;
+  const recipientAddress = Address.parse(address);
+  const amountToSend = toNano(reward.toString());
 
-  console.log(`🚀 Отправляем ${amountTon} TON на ${toAddress}`);
+  console.log(`🎯 Победа! Отправляем ${reward} TON на ${recipientAddress.toString()}`);
 
-  await wallet.methods.transfer({
+  await walletContract.sendTransfer({
+    seqno: await walletContract.getSeqno(),
     secretKey: keyPair.secretKey,
-    toAddress,
-    amount: amountNano,
-    seqno,
-    validUntil,
-    payload: null,
-    sendMode: 3
-  }).send();
+    messages: [internal({
+      to: recipientAddress,
+      value: amountToSend,
+      body: '🎁 Scratch Lottery reward',
+    })],
+    sendMode: 3,
+  });
+
+  console.log('✅ TON отправлены!');
 }
 
-module.exports = { sendTonReward, wallet };
+// Проверка, что все 3 эмоджи совпадают
+function checkWin(emojis) {
+  if (typeof emojis !== 'string' || emojis.length < 3) return false;
+  const symbols = [...emojis];
+  return symbols.every(s => s === symbols[0]);
+}
+
+module.exports = { sendTonRewardIfWin };
