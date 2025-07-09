@@ -22,18 +22,21 @@ const wallet = tonweb.wallet.create({
 });
 
 async function deployWalletIfNeeded() {
-  const isDeployed = await wallet.isDeployed();
+  const address = await wallet.getAddress();
+  const addressStr = address.toString(true, true, true);
+
+  const info = await tonweb.provider.getAddressInfo(addressStr);
+  const isDeployed = info?.state === 'active';
 
   if (!isDeployed) {
     console.log('📦 Кошелёк ещё не активен, активируем...');
 
     const seqno = 0;
-    const address = await wallet.getAddress();
     const amountNano = TonWeb.utils.toNano('0.01');
 
     await wallet.methods.transfer({
       secretKey: keyPair.secretKey,
-      toAddress: address.toString(true, true, true),
+      toAddress: addressStr,
       amount: amountNano,
       seqno,
       sendMode: 3,
