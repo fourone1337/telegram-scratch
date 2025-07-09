@@ -3,12 +3,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
-const { sendTonRewardIfWin } = require('./ton'); // ⬅️ правильный импорт
+const { sendTonReward } = require('./ton');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Подключение к Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
@@ -33,7 +32,7 @@ app.get('/api/wins', async (req, res) => {
   res.json(data);
 });
 
-// Сохранить нового победителя
+// Сохранить нового победителя и выдать приз
 app.post('/api/wins', async (req, res) => {
   const { address, emojis, reward, date } = req.body;
 
@@ -51,10 +50,18 @@ app.post('/api/wins', async (req, res) => {
   }
 
   try {
-    if (reward > 0) {
-      // 👇 вызываем с правильными параметрами
-      await sendTonRewardIfWin({ address, emojis, reward });
+    // Условие: три одинаковых эмодзи
+    if (
+      reward > 0 &&
+      emojis.length === 3 &&
+      emojis[0] === emojis[1] &&
+      emojis[1] === emojis[2]
+    ) {
+      await sendTonReward(address, reward);
+    } else {
+      console.log("🏁 Невыполнено условие трёх одинаковых эмодзи. Награда не отправлена.");
     }
+
     res.json({ success: true });
   } catch (err) {
     console.error('Ошибка отправки TON:', err);
