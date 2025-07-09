@@ -50,23 +50,24 @@ app.post('/api/wins', async (req, res) => {
   }
 
   try {
-    // Условие: три одинаковых эмодзи
-    if (
-      reward > 0 &&
-      emojis.length === 3 &&
-      emojis[0] === emojis[1] &&
-      emojis[1] === emojis[2]
-    ) {
-      await sendTonReward(address, reward);
-    } else {
-      console.log("🏁 Невыполнено условие трёх одинаковых эмодзи. Награда не отправлена.");
-    }
+  const emojiArray = Array.from(emojis); // <-- правильно разбиваем эмодзи
 
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Ошибка отправки TON:', err);
-    res.status(500).json({ error: 'Ошибка отправки TON' });
+  if (
+    reward > 0 &&
+    emojiArray.length === 3 &&
+    emojiArray[0] === emojiArray[1] &&
+    emojiArray[1] === emojiArray[2]
+  ) {
+    await sendTonReward(address, reward);
+  } else {
+    console.log("🏁 Невыполнено условие трёх одинаковых эмодзи. Награда не отправлена.");
   }
+
+  res.json({ success: true });
+} catch (err) {
+  console.error('Ошибка отправки TON:', err);
+  res.status(500).json({ error: 'Ошибка отправки TON' });
+}
 });
 
 app.listen(PORT, () => {
