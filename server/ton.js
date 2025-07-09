@@ -30,11 +30,9 @@ async function sendTonRewardIfWin({ address, emojis, reward }) {
     const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
     const walletContract = client.open(wallet);
 
-    // Проверка состояния кошелька
-    const walletState = await walletContract.getState();
-    if (!walletState.balance) {
-      throw new Error('Кошелек не активен или не имеет баланса');
-    }
+    // Получаем информацию о кошельке
+    const walletAddress = await walletContract.getAddress();
+    console.log('Адрес кошелька:', walletAddress.toString());
 
     const recipientAddress = Address.parse(address);
     const amountToSend = toNano(reward.toString());
