@@ -4,48 +4,53 @@ const { Address, toNano } = require('@ton/core');
 require('dotenv').config();
 
 // Загрузка переменных окружения
-const SECRET_KEY = process.env.SECRET_KEY; // Мнемоника
+const SECRET_KEY = process.env.SECRET_KEY;
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 
 if (!SECRET_KEY || !TONCENTER_API_KEY) {
   throw new Error('❌ SECRET_KEY или TONCENTER_API_KEY не найдены в .env');
 }
 
-// Основная функция отправки TON — уже с готовым адресом, суммой и условием
 async function sendTonRewardIfWin({ address, emojis, reward }) {
-  const winning = checkWin(emojis); // 🎰 Проверка выигрыша по эмоджи
+  const winning = checkWin(emojis);
+
   if (!winning || reward <= 0) {
     console.log('❌ Не выиграл — TON не отправлены.');
     return;
   }
 
-  const toncenterEndpoint = `https://toncenter.com/api/v2/jsonRPC?api_key=${TONCENTER_API_KEY}`;
-  const client = new TonClient({ endpoint: toncenterEndpoint });
+  console.log(`🎯 Победа! Отправляем ${reward} TON на ${address}`);
 
-  const keyPair = await mnemonicToPrivateKey(SECRET_KEY.split(' '));
-  const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
-  const walletContract = client.open(wallet);
+  try {
+    const toncenterEndpoint = `https://toncenter.com/api/v2/jsonRPC?api_key=${TONCENTER_API_KEY}`;
+    const client = new TonClient({ endpoint: toncenterEndpoint });
 
-  const recipientAddress = Address.parse(address);
-  const amountToSend = toNano(reward.toString());
+    const keyPair = await mnemonicToPrivateKey(SECRET_KEY.split(' '));
 
-  console.log(`🎯 Победа! Отправляем ${reward} TON на ${recipientAddress.toString()}`);
+    const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
+    const walletContract = client.open(wallet);
 
-  await walletContract.sendTransfer({
-    seqno: await walletContract.getSeqno(),
-    secretKey: keyPair.secretKey,
-    messages: [internal({
-      to: recipientAddress,
-      value: amountToSend,
-      body: '🎁 Scratch Lottery reward',
-    })],
-    sendMode: 3,
-  });
+    const recipientAddress = Address.parse(address);
+    const amountToSend = toNano(reward.toString());
 
-  console.log('✅ TON отправлены!');
+    await walletContract.sendTransfer({
+      seqno: await walletContract.getSeqno(),
+      secretKey: keyPair.secretKey,
+      messages: [internal({
+        to: recipientAddress,
+        value: amountToSend,
+        body: '🎁 Scratch Lottery reward',
+      })],
+      sendMode: 3,
+    });
+
+    console.log('✅ TON отправлены!');
+  } catch (err) {
+    console.error('🚫 Ошибка при отправке TON:', err);
+  }
 }
 
-// Проверка, что все 3 эмоджи совпадают
+// Проверка совпадения эмоджи
 function checkWin(emojis) {
   if (typeof emojis !== 'string' || emojis.length < 3) return false;
   const symbols = [...emojis];
