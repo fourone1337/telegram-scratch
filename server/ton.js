@@ -1,4 +1,4 @@
-const TonWeb = require('tonweb');          // v0.0.66
+const TonWeb = require('tonweb');
 require('dotenv').config();
 
 const { TONCENTER_API_KEY, SECRET_KEY } = process.env;
@@ -11,44 +11,46 @@ const provider = new TonWeb.HttpProvider(
 const tonweb = new TonWeb(provider);
 
 // ---------- ключи и кошелёк v4R2 ----------
-const keyPair = TonWeb.utils.keyPairFromSeed(Buffer.from(SECRET_KEY, 'base64'));
+const seedBytes = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));  // <-- Uint8Array
+const keyPair   = TonWeb.utils.keyPairFromSeed(seedBytes);
 
 const wallet = tonweb.wallet.create({
   publicKey : keyPair.publicKey,
-  wc        : 0,          // workchain-id
-  type      : 'v4R2'      // нужный тип кошелька
+  wc        : 0,
+  type      : 'v4R2'
 });
 // ------------------------------------------
 
 async function deployWalletIfNeeded() {
-  const address = await wallet.getAddress();
-  const info    = await provider.getAddressInfo(address.toString());
+  const addr = await wallet.getAddress();
+  const info = await provider.getAddressInfo(addr.toString());
 
-  if (info?.state === 'active') return;     // уже развёрнут
+  if (info?.state === 'active') return;
 
   console.log('📦 Кошелёк не развёрнут — деплоим…');
   await wallet.deploy({ secretKey: keyPair.secretKey }).send();
   console.log('✅ Кошелёк развёрнут.');
 }
 
-async function sendTonReward(toAddress, amountTon) {
+async function sendTonReward(toAddressStr, amountTon) {
   await deployWalletIfNeeded();
 
-  // безопасно получаем seqno: на пустом кошельке будет ошибка → берём 0
   let seqno = 0;
-  try { seqno = await wallet.methods.seqno().call(); } catch { /* ignore */ }
+  try { seqno = await wallet.methods.seqno().call(); } catch {}
 
   const amountNano = TonWeb.utils.toNano(amountTon.toString());
-  console.log(`🚀 Перевод ${amountTon} TON на ${toAddress} (seqno ${seqno})`);
+  const toAddress  = new TonWeb.Address(toAddressStr);     // <-- объект, не строка
+
+  console.log(`🚀 Перевод ${amountTon} TON на ${toAddressStr}`);
 
   await wallet.methods.transfer({
-    secretKey : keyPair.secretKey,
+    secretKey : keyPair.secretKey,        // Uint8Array
     toAddress,
     amount    : amountNano,
     seqno,
     payload   : null,
-    bounce    : false,   // обычный перевод, без возврата
-    sendMode  : 3        // отдельно платим gas, игнорируем ошибки при доставке
+    bounce    : false,
+    sendMode  : 3
   }).send();
 
   console.log('✅ Транзакция отправлена!');
