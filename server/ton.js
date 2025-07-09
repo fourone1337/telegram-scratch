@@ -6,6 +6,7 @@ require('dotenv').config();
 const { TONCENTER_API_KEY, SECRET_KEY } = process.env;
 if (!SECRET_KEY) throw new Error("❌ SECRET_KEY отсутствует в .env");
 
+// 🔌 Инициализация клиента
 const client = new TonClient({
   endpoint: 'https://toncenter.com/api/v2/jsonRPC',
   apiKey: TONCENTER_API_KEY
@@ -34,13 +35,18 @@ async function initWallet() {
     console.log("🔑 Ключ получен из base64 seed");
   }
 
-  wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
+  wallet = WalletContractV4.create({
+    workchain: 0,
+    publicKey: keyPair.publicKey
+  });
+
   sender = client.open(wallet);
   secretKey = keyPair.secretKey;
 
-  // 📦 Проверка — развёрнут ли кошелёк
+  // 📦 Проверка, развёрнут ли кошелёк
   const address = wallet.address;
-  const info = await client.getAccountLite(address);
+  const block = await client.getLastBlock();
+  const info = await client.getAccount(block.last.seqno, address);
 
   if (info.account.state.type !== 'active') {
     console.log("📦 Кошелёк не развёрнут — отправляем deploy...");
@@ -55,15 +61,16 @@ async function sendTonReward(toAddress, amountTon) {
 
     const seqno = await sender.getSeqno();
     const amountNano = BigInt(Math.floor(parseFloat(amountTon) * 1e9));
+    const address = toAddress.toString();
 
-    console.log(`🚀 Перевод ${amountTon} TON на ${toAddress} (seqno ${seqno})`);
+    console.log(`🚀 Перевод ${amountTon} TON на ${address} (seqno ${seqno})`);
 
     await sender.sendTransfer({
       secretKey,
       seqno,
       messages: [
         internal({
-          to: toAddress,
+          to: address,
           value: amountNano,
           bounce: false
         })
