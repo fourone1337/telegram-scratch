@@ -3,11 +3,11 @@ const { mnemonicToPrivateKey } = require('@ton/crypto');
 const { Address, toNano } = require('@ton/core');
 require('dotenv').config();
 
-const MNEMONIC = process.env.MNEMONIC;
+const SECRET_KEY = process.env.SECRET_KEY;
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 
-if (!MNEMONIC || !TONCENTER_API_KEY) {
-  throw new Error('❌ MNEMONIC или TONCENTER_API_KEY не найдены в .env');
+if (!SECRET_KEY || !TONCENTER_API_KEY) {
+  throw new Error('❌ SECRET_KEY или TONCENTER_API_KEY не найдены в .env');
 }
 
 const toncenterEndpoint = `https://toncenter.com/api/v2/jsonRPC?api_key=${TONCENTER_API_KEY}`;
@@ -17,7 +17,7 @@ let walletContract;
 let keyPair;
 
 async function initWallet() {
-  keyPair = await mnemonicToPrivateKey(MNEMONIC.split(' '));
+  keyPair = await mnemonicToPrivateKey(SECRET_KEY.split(' '));
 
   const wallet = WalletContractV4.create({
     workchain: 0,
