@@ -1,78 +1,67 @@
-// server/ton.js
-const TonWeb = require('tonweb');
-const bip39  = require('bip39');                // уже есть в package.json
+const { TonClient, WalletContractV4, internal } = require('@ton/ton');
+const { mnemonicToPrivateKey } = require('@ton/crypto');
+const { mnemonicValidate, mnemonicToSeedSync } = require('bip39');
+const { fromBase64 } = require('@ton/crypto');
 require('dotenv').config();
 
 const { TONCENTER_API_KEY, SECRET_KEY } = process.env;
-if (!SECRET_KEY) throw new Error('❌ SECRET_KEY отсутствует в .env');
+if (!SECRET_KEY) throw new Error("❌ SECRET_KEY отсутствует в .env");
 
-const provider = new TonWeb.HttpProvider(
-  'https://toncenter.com/api/v2/jsonRPC',
-  { apiKey: TONCENTER_API_KEY }
-);
-const tonweb = new TonWeb(provider);
-
-/* ---------- 1. Получаем seed (32 байта) ---------- */
-let seedBytes;
-
-// A) в .env лежит 24-словная мнемоника
-if (SECRET_KEY.trim().split(/\s+/).length >= 12) {
-  if (!bip39.validateMnemonic(SECRET_KEY.trim()))
-    throw new Error('❌ Неверная мнемоническая фраза');
-  const fullSeed = bip39.mnemonicToSeedSync(SECRET_KEY.trim()); // 64 байта Buffer
-  seedBytes = Uint8Array.from(fullSeed.slice(0, 32));           // первые 32
-  console.log('🔑 seed получен из мнемоники');
-}
-// B) в .env лежит base64-seed (32 байта)
-else {
-  seedBytes = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
-  console.log('🔑 seed получен из base64');
-}
-
-/* ---------- 2. Ключи и кошелёк v4R2 ---------- */
-const keyPair = TonWeb.utils.keyPairFromSeed(seedBytes);
-const secretKeyUint8 = new Uint8Array(keyPair.secretKey);       // гарантия Uint8Array
-
-const wallet = tonweb.wallet.create({
-  publicKey : new Uint8Array(keyPair.publicKey),                // тоже Uint8Array
-  wc        : 0,
-  type      : 'v4R2'
+const client = new TonClient({
+  endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+  apiKey: TONCENTER_API_KEY
 });
-/* --------------------------------------------- */
 
-async function deployWalletIfNeeded() {
-  const addr = await wallet.getAddress();
-  const info = await provider.getAddressInfo(addr.toString());
+let wallet, sender, secretKey;
 
-  if (info?.state === 'active') return;
+async function initWallet() {
+  if (wallet && sender && secretKey) return;
 
-  console.log('📦 Кошелёк не развёрнут — деплоим…');
-  await wallet.deploy({ secretKey: secretKeyUint8 }).send();
-  console.log('✅ Кошелёк развёрнут.');
+  let key;
+  if (SECRET_KEY.trim().includes(' ')) {
+    // 🧠 Мнемоника
+    const mnemonic = SECRET_KEY.trim().split(/\s+/);
+    if (!mnemonicValidate(mnemonic)) {
+      throw new Error("❌ Неверная мнемоническая фраза");
+    }
+    key = await mnemonicToPrivateKey(mnemonic);
+    console.log("🔑 Ключ получен из мнемоники");
+  } else {
+    // 📦 Base64 seed
+    const seed = fromBase64(SECRET_KEY);
+    if (seed.length !== 32) throw new Error("❌ Base64 seed должен быть 32 байта");
+    const mnemonic = Array(24).fill("abandon"); // placeholder
+    key = await mnemonicToPrivateKey(mnemonic); // временный хак
+    key.secretKey = seed;
+    console.log("🔑 Ключ получен из base64 seed");
+  }
+
+  wallet = WalletContractV4.create({ workchain: 0, publicKey: key.publicKey });
+  sender = client.open(wallet);
+  secretKey = key.secretKey;
 }
 
-async function sendTonReward(toAddressStr, amountTon) {
-  await deployWalletIfNeeded();
+async function sendTonReward(toAddress, amountTon) {
+  await initWallet();
 
-  let seqno = 0;
-  try { seqno = await wallet.methods.seqno().call(); } catch {}
+  const seqno = await sender.getSeqno();
+  const amountNano = BigInt(Math.floor(parseFloat(amountTon) * 1e9));
 
-  const amountNano = TonWeb.utils.toNano(amountTon.toString());
-  const toAddress  = new TonWeb.Address(toAddressStr);
+  console.log(`🚀 Перевод ${amountTon} TON на ${toAddress} (seqno ${seqno})`);
 
-  console.log(`🚀 Перевод ${amountTon} TON на ${toAddressStr}`);
-
-  await wallet.methods.transfer({
-    secretKey : secretKeyUint8,   // <-- теперь Uint8Array
-    toAddress,
-    amount    : amountNano,
+  await sender.sendTransfer({
+    secretKey,
     seqno,
-    payload   : null,
-    bounce    : false,
-    sendMode  : 3
-  }).send();
+    messages: [
+      internal({
+        to: toAddress,
+        value: amountNano,
+        bounce: false
+      })
+    ]
+  });
 
-  console.log('✅ Транзакция отправлена!');
+  console.log("✅ Транзакция отправлена!");
 }
 
 module.exports = { sendTonReward };
