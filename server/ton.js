@@ -1,6 +1,6 @@
 const { TonClient, WalletContractV4, internal } = require('@ton/ton');
-const { mnemonicToPrivateKey } = require('@ton/crypto');
-const { mnemonicValidate, mnemonicToSeedSync } = require('bip39');
+const { mnemonicToPrivateKey, keyPairFromSeed } = require('@ton/crypto');
+const { mnemonicValidate } = require('bip39');
 require('dotenv').config();
 
 const { TONCENTER_API_KEY, SECRET_KEY } = process.env;
@@ -16,29 +16,27 @@ let wallet, sender, secretKey;
 async function initWallet() {
   if (wallet && sender && secretKey) return;
 
-  let key;
+  let keyPair;
   if (SECRET_KEY.trim().includes(' ')) {
     // 🧠 Мнемоника
     const mnemonic = SECRET_KEY.trim().split(/\s+/);
     if (!mnemonicValidate(mnemonic)) {
       throw new Error("❌ Неверная мнемоническая фраза");
     }
-    key = await mnemonicToPrivateKey(mnemonic);
+    keyPair = await mnemonicToPrivateKey(mnemonic);
     console.log("🔑 Ключ получен из мнемоники");
   } else {
-    // 📦 Base64 seed
-    const seed = Uint8Array.from(Buffer.from(SECRET_KEY, 'base64'));
+    // 📦 Base64 seed → keyPair
+    const seed = Buffer.from(SECRET_KEY, 'base64');
     if (seed.length !== 32) throw new Error("❌ Base64 seed должен быть 32 байта");
 
-    const mnemonic = Array(24).fill("abandon"); // заглушка
-    key = await mnemonicToPrivateKey(mnemonic);
-    key.secretKey = seed;
+    keyPair = keyPairFromSeed(seed); // ← получаем 64-байтный секретный ключ
     console.log("🔑 Ключ получен из base64 seed");
   }
 
-  wallet = WalletContractV4.create({ workchain: 0, publicKey: key.publicKey });
+  wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
   sender = client.open(wallet);
-  secretKey = key.secretKey;
+  secretKey = keyPair.secretKey;
 }
 
 async function sendTonReward(toAddress, amountTon) {
