@@ -8,6 +8,7 @@ const { sendTonReward } = require('./ton');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Подключение к Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
@@ -32,7 +33,7 @@ app.get('/api/wins', async (req, res) => {
   res.json(data);
 });
 
-// Сохранить нового победителя и выдать приз
+// Сохранить нового победителя
 app.post('/api/wins', async (req, res) => {
   const { address, emojis, reward, date } = req.body;
 
@@ -50,24 +51,14 @@ app.post('/api/wins', async (req, res) => {
   }
 
   try {
-  const emojiArray = Array.from(emojis); // <-- правильно разбиваем эмодзи
-
-  if (
-    reward > 0 &&
-    emojiArray.length === 3 &&
-    emojiArray[0] === emojiArray[1] &&
-    emojiArray[1] === emojiArray[2]
-  ) {
-    await sendTonReward(address, reward);
-  } else {
-    console.log("🏁 Невыполнено условие трёх одинаковых эмодзи. Награда не отправлена.");
+    if (reward > 0) {
+      await sendTonReward(address, reward);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Ошибка отправки TON:', err);
+    res.status(500).json({ error: 'Ошибка отправки TON' });
   }
-
-  res.json({ success: true });
-} catch (err) {
-  console.error('Ошибка отправки TON:', err);
-  res.status(500).json({ error: 'Ошибка отправки TON' });
-}
 });
 
 app.listen(PORT, () => {
