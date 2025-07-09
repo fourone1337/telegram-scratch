@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
-const { sendTonReward } = require('./ton');
+const { sendTonRewardIfWin } = require('./ton'); // ⬅️ правильный импорт
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -52,7 +52,8 @@ app.post('/api/wins', async (req, res) => {
 
   try {
     if (reward > 0) {
-      await sendTonReward(address, reward);
+      // 👇 вызываем с правильными параметрами
+      await sendTonRewardIfWin({ address, emojis, reward });
     }
     res.json({ success: true });
   } catch (err) {
