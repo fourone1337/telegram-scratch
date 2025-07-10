@@ -17,7 +17,7 @@ const history = [];
 let currentTicket = null;
 let openedIndices = [];
 let currentWalletAddress = null;
-const SERVER_URL = "https://telegram-scratch.onrender.com/";
+const SERVER_URL = "https://telegram-scratch.onrender.com";
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'tonconnect-manifest.json',
