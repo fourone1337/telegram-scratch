@@ -1,65 +1,62 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+app.use(cors());
+app.use(express.json());
 
 // Подключение к Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_KEY
 );
 
-app.use(cors());
-app.use(bodyParser.json());
-
-// Получить список победителей
-app.get('/api/wins', async (req, res) => {
-  const { data, error } = await supabase
-    .from('wins')
-    .select('*')
-    .order('date', { ascending: false })
-    .limit(20);
-
-  if (error) {
-    console.error('Ошибка получения победителей:', error);
-    return res.status(500).json({ error: 'Ошибка получения данных' });
-  }
-
-  res.json(data);
-});
-
-// Сохранить нового победителя
-app.post('/api/wins', async (req, res) => {
+// 🏆 Сохранить победу
+app.post("/api/wins", async (req, res) => {
   const { address, emojis, reward, date } = req.body;
-
-  if (!address || !emojis || !date) {
-    return res.status(400).json({ error: "Некорректные данные" });
+  const result = await supabase.from("wins").insert([{ address, emojis, reward, date }]);
+  if (result.error) {
+    console.error("Ошибка записи в wins:", result.error.message);
+    return res.status(500).json({ error: result.error.message });
   }
-
-  const { error } = await supabase
-    .from('wins')
-    .insert([{ address, emojis, reward, date }]);
-
-  if (error) {
-    console.error('Ошибка записи победы:', error);
-    return res.status(500).json({ error: 'Ошибка записи' });
-  }
-
-  try {
-    if (reward > 0) {
-      await sendTonReward(address, reward);
-    }
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Ошибка отправки TON:', err);
-    res.status(500).json({ error: 'Ошибка отправки TON' });
-  }
+  res.json({ success: true });
 });
 
+// 💰 Увеличить баланс
+app.post("/api/topup", async (req, res) => {
+  const { address, amount } = req.body;
+  const { data, error } = await supabase.rpc("increment_balance", {
+    user_address: address,
+    add_amount: amount,
+  });
+  if (error) {
+    console.error("Ошибка увеличения баланса:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+  res.json({ balance: data });
+});
+
+// 🔍 Получить баланс
+app.get("/api/balance/:address", async (req, res) => {
+  const { address } = req.params;
+  const { data, error } = await supabase
+    .from("users")
+    .select("balance")
+    .eq("address", address)
+    .single();
+
+  if (error) {
+    console.error("Ошибка получения баланса:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json({ balance: data.balance });
+});
+
+// Запуск
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`🚀 Сервер запущен на порту ${PORT}`);
+  console.log(`✅ Сервер запущен на http://localhost:${PORT}`);
 });
