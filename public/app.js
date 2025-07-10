@@ -1,3 +1,4 @@
+
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
@@ -13,15 +14,15 @@ const emojiRewards = {
   "💎": 1.0
 };
 
-const history = [];
+const SERVER_URL = "https://telegram-scratch.onrender.com";
+let currentWalletAddress = null;
 let currentTicket = null;
 let openedIndices = [];
-let currentWalletAddress = null;
-const SERVER_URL = "https://telegram-scratch.onrender.com";
+const history = [];
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'tonconnect-manifest.json',
-  buttonRootId: 'ton-connect'
+  manifestUrl: "tonconnect-manifest.json",
+  buttonRootId: "ton-connect"
 });
 
 tonConnectUI.onStatusChange(wallet => {
@@ -32,57 +33,69 @@ tonConnectUI.onStatusChange(wallet => {
 
   currentWalletAddress = fullAddress || null;
 
-  walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
+  walletDisplay.textContent = fullAddress
+    ? `🟢 Кошелёк: ${shortAddress}`
+    : shortAddress;
+
   buyBtn.disabled = !fullAddress;
-  status.textContent = fullAddress
-    ? "Нажмите «Купить билет», чтобы начать игру!"
-    : "Подключите кошелёк для начала игры.";
-
-  if (currentWalletAddress) {
-    loadBalance(currentWalletAddress);
-  } else {
-    balanceDisplay.textContent = "💰 Баланс: —";
-  }
+  loadBalance(currentWalletAddress);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const refreshBtn = document.createElement("button");
-  refreshBtn.textContent = "🔄 Обновить баланс";
-  refreshBtn.style.marginTop = "10px";
-  refreshBtn.onclick = () => {
-    if (currentWalletAddress) {
-      loadBalance(currentWalletAddress);
-    }
-  };
-  balanceDisplay?.insertAdjacentElement("afterend", refreshBtn);
-});
-
-buyBtn.onclick = () => {
+buyBtn.onclick = async () => {
   if (!currentWalletAddress) {
-    alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
+    alert("Пожалуйста, подключите TON-кошелёк.");
     return;
   }
 
-  currentTicket = generateTicket();
-  openedIndices = [];
-  status.textContent = "Выберите 3 ячейки, чтобы открыть";
-  renderTicket(currentTicket);
-  loadBalance(currentWalletAddress);
+  const price = 0.2;
+
+  try {
+    const res = await fetch(`${SERVER_URL}/api/spend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: currentWalletAddress, amount: price })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Ошибка при списании.");
+      return;
+    }
+
+    currentTicket = generateTicket();
+    openedIndices = [];
+    status.textContent = "Выберите 3 ячейки, чтобы открыть";
+    renderTicket(currentTicket);
+    loadBalance(currentWalletAddress);
+
+  } catch (err) {
+    console.error("Ошибка покупки билета:", err);
+    alert("Сервер недоступен.");
+  }
 };
 
+function loadBalance(address) {
+  if (!address) return;
+  fetch(`${SERVER_URL}/api/balance/${address}`)
+    .then(res => res.json())
+    .then(data => {
+      balanceDisplay.textContent = `💰 Баланс: ${data.balance} TON`;
+    })
+    .catch(err => {
+      console.error("Ошибка загрузки баланса:", err);
+      balanceDisplay.textContent = "💰 Баланс: —";
+    });
+}
+
 function generateTicket() {
-  const ticket = [];
-  for (let i = 0; i < 6; i++) {
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-    ticket.push(emoji);
-  }
-  return ticket;
+  const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
+  return Array.from({ length: 6 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
 }
 
 function renderTicket(ticket) {
   const containerId = "ticket-container";
   let container = document.getElementById(containerId);
-
   if (!container) {
     container = document.createElement("div");
     container.id = containerId;
@@ -90,7 +103,6 @@ function renderTicket(ticket) {
     container.style.gridTemplateColumns = "repeat(3, 60px)";
     container.style.gridTemplateRows = "repeat(2, 60px)";
     container.style.gridGap = "10px";
-    container.style.justifyContent = "center";
     container.style.margin = "20px 0";
     document.body.insertBefore(container, status);
   }
@@ -107,7 +119,6 @@ function renderTicket(ticket) {
     cell.style.justifyContent = "center";
     cell.style.fontSize = "36px";
     cell.style.cursor = "pointer";
-    cell.style.userSelect = "none";
     cell.textContent = openedIndices.includes(idx) ? emoji : "❓";
 
     cell.onclick = () => {
@@ -130,109 +141,25 @@ function checkWin(ticket) {
     const reward = emojiRewards[symbol] || 0;
     status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
 
-    const address = currentWalletAddress;
-    const emojis = openedEmojis.join('');
-    if (address) {
-      sendWinToServer(address, emojis, reward);
-      fetchWinners();
-      loadBalance(address);
-    }
+    fetch(`${SERVER_URL}/api/wins`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        address: currentWalletAddress,
+        emojis: openedEmojis.join(""),
+        reward,
+        date: new Date().toISOString()
+      })
+    });
+
+    fetch(`${SERVER_URL}/api/topup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: currentWalletAddress, amount: reward })
+    });
+
+    loadBalance(currentWalletAddress);
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
-
-  history.push({ ticket, opened: [...openedIndices], winner: allSame, openedEmojis });
-  renderHistory();
 }
-
-function renderHistory() {
-  let historyDiv = document.getElementById("history");
-  if (!historyDiv) {
-    historyDiv = document.createElement("div");
-    historyDiv.id = "history";
-    historyDiv.style.marginTop = "30px";
-    historyDiv.style.textAlign = "left";
-    document.body.appendChild(historyDiv);
-  }
-
-  if (history.length === 0) {
-    historyDiv.innerHTML = "<b>История пуста</b>";
-    return;
-  }
-
-  const listItems = history.map((h, idx) => {
-    const statusText = h.winner ? "Выигрыш" : "Проигрыш";
-    const color = h.winner ? "green" : "red";
-    const openedStr = h.openedEmojis.join(", ");
-    return `<div style="color:${color}; margin-bottom:6px;">
-      <b>Игра #${idx + 1}:</b> ${statusText} — Открытые: ${openedStr}
-    </div>`;
-  });
-
-  historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
-}
-
-async function sendWinToServer(address, emojis, reward) {
-  try {
-    await fetch(`${SERVER_URL}/api/wins`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, emojis, reward, date: new Date().toISOString() })
-    });
-
-    await fetch(`${SERVER_URL}/api/topup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, amount: reward })
-    });
-  } catch (err) {
-    console.error("Ошибка отправки победы:", err);
-  }
-}
-
-async function loadBalance(address) {
-  try {
-    const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
-    const data = await res.json();
-    balanceDisplay.textContent = `💰 Баланс: ${data.balance} TON`;
-  } catch (err) {
-    balanceDisplay.textContent = "💰 Баланс: —";
-    console.error("Ошибка загрузки баланса:", err);
-  }
-}
-
-async function fetchWinners() {
-  try {
-    const res = await fetch(`${SERVER_URL}/api/wins`);
-    const data = await res.json();
-    renderWinners(data);
-  } catch (err) {
-    console.error("Ошибка загрузки победителей:", err);
-  }
-}
-
-function renderWinners(data) {
-  let winnersDiv = document.getElementById("winners");
-  if (!winnersDiv) {
-    winnersDiv = document.createElement("div");
-    winnersDiv.id = "winners";
-    winnersDiv.style.marginTop = "40px";
-    winnersDiv.innerHTML = "<h3>🏆 Победители</h3>";
-    document.body.appendChild(winnersDiv);
-  }
-
-  if (!data.length) {
-    winnersDiv.innerHTML += "<div>Победителей пока нет</div>";
-    return;
-  }
-
-  const list = data.map(win => {
-    const shortAddr = `${win.address.slice(0, 4)}...${win.address.slice(-3)}`;
-    const rewardInfo = win.reward ? ` — 💰 ${win.reward} TON` : "";
-    return `<div>🎉 ${shortAddr} — ${win.emojis}${rewardInfo} (${new Date(win.date).toLocaleString()})</div>`;
-  });
-
-  winnersDiv.innerHTML = "<h3>🏆 Победители</h3>" + list.join("");
-}
-
-fetchWinners();
