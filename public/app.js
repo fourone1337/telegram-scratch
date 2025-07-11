@@ -18,6 +18,11 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
+// 🔧 raw (0:...) → friendly (UQ...) адрес
+function rawToFriendly(raw) {
+  return new TonWeb.utils.Address(raw).toString(true, true, false);
+}
+
 // ✅ Инициализация TonConnect
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
@@ -25,24 +30,26 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  const fullAddress = wallet?.account?.address || "";
-  const shortAddress = fullAddress
-    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
+  const fullRawAddress = wallet?.account?.address || "";
+  const friendlyAddress = fullRawAddress ? rawToFriendly(fullRawAddress) : null;
+
+  const shortAddress = friendlyAddress
+    ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  currentWalletAddress = fullAddress || null;
-  walletDisplay.textContent = fullAddress
+  currentWalletAddress = friendlyAddress;
+  walletDisplay.textContent = friendlyAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !fullAddress;
-  document.getElementById("topup").disabled = !fullAddress;
+  buyBtn.disabled = !friendlyAddress;
+  document.getElementById("topup").disabled = !friendlyAddress;
 
-  status.textContent = fullAddress
+  status.textContent = friendlyAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (fullAddress) fetchBalance(fullAddress);
+  if (friendlyAddress) fetchBalance(friendlyAddress);
 });
 
 // ✅ Кнопка "Купить билет"
@@ -110,12 +117,9 @@ document.getElementById("topup").onclick = async () => {
 
 // ✅ Проверка через сервер, был ли перевод
 async function verifyTopup(address, amount) {
-    console.log("→ verifyTopup вызывается с:", address, amount); // 👈 лог
   status.textContent = "⏳ Проверяем перевод...";
   const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
   const data = await res.json();
-
-  console.log("Ответ от сервера:", data); // 👈 лог
 
   if (data.confirmed) {
     await fetchBalance(address);
@@ -124,19 +128,6 @@ async function verifyTopup(address, amount) {
     status.textContent = "❌ Перевод не найден. Попробуйте позже.";
   }
 }
-
-// ❌ Удалено: ручное пополнение через API больше не используется
-// async function topUpBalance(address, amount) {
-//   const res = await fetch(`${SERVER_URL}/api/topup`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ address, amount })
-//   });
-
-//   const data = await res.json();
-//   if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
-//   return data;
-// }
 
 async function spendBalance(address, amount) {
   const res = await fetch(`${SERVER_URL}/api/spend`, {
