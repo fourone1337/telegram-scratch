@@ -47,7 +47,6 @@ app.post("/api/topup", async (req, res) => {
 });
 
 // 🔍 Получить текущий виртуальный баланс (и создать пользователя при необходимости)
-const { Address } = require('@ton/core'); // Добавь вверху файла
 
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const { address, amount } = req.params;
