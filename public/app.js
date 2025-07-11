@@ -112,7 +112,7 @@ document.getElementById("topup").onclick = async () => {
 async function verifyTopup(address, amount) {
     console.log("→ verifyTopup вызывается с:", address, amount); // 👈 лог
   status.textContent = "⏳ Проверяем перевод...";
-  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`); // может путь ???
+  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
   const data = await res.json();
 
   console.log("Ответ от сервера:", data); // 👈 лог
@@ -125,17 +125,18 @@ async function verifyTopup(address, amount) {
   }
 }
 
-async function topUpBalance(address, amount) {
-  const res = await fetch(`${SERVER_URL}/api/topup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address, amount })
-  });
+// ❌ Удалено: ручное пополнение через API больше не используется
+// async function topUpBalance(address, amount) {
+//   const res = await fetch(`${SERVER_URL}/api/topup`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ address, amount })
+//   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
-  return data;
-}
+//   const data = await res.json();
+//   if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
+//   return data;
+// }
 
 async function spendBalance(address, amount) {
   const res = await fetch(`${SERVER_URL}/api/spend`, {
