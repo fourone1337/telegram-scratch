@@ -75,41 +75,54 @@ app.get("/api/balance/:address", async (req, res) => {
 // 🔐 Проверка реального перевода через TonAPI
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const { address, amount } = req.params;
-  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
+  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g"; // твой TON-кошелёк
   const TONAPI_KEY = process.env.TONAPI_KEY;
 
   try {
     const response = await fetch(
-      `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=10`,
+      `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=20`,
       {
-        headers: {
-          Authorization: `Bearer ${TONAPI_KEY}`
-        }
+        headers: { Authorization: `Bearer ${TONAPI_KEY}` }
       }
     );
 
     const txs = await response.json();
+    const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
+
+    console.log("🔍 Ищем входящий перевод от:", address);
+    console.log("Нужно >=:", nanoAmount.toString(), "наноTON");
+    console.log("Последние транзакции:", txs.transactions.length);
+
     const found = txs.transactions.find(tx =>
       tx.incoming &&
       tx.incoming.source === address &&
-      parseFloat(tx.incoming.value) >= parseFloat(amount) * 1e9
+      BigInt(tx.incoming.value) >= nanoAmount
     );
 
     if (!found) {
+      console.log("❌ Перевод не найден для", address);
       return res.json({ confirmed: false });
     }
 
-    await supabase.rpc("increment_balance", {
+    console.log("✅ Перевод найден от", address, "на", found.incoming.value, "наноTON");
+
+    const { error } = await supabase.rpc("increment_balance", {
       user_address: address,
       add_amount: parseFloat(amount)
     });
 
+    if (error) {
+      console.error("❌ Ошибка при зачислении баланса:", error.message);
+      return res.status(500).json({ error: "Ошибка при зачислении баланса" });
+    }
+
     return res.json({ confirmed: true });
   } catch (err) {
-    console.error("Ошибка проверки перевода:", err);
+    console.error("❌ Ошибка проверки перевода:", err);
     return res.status(500).json({ error: "Проверка TON не удалась" });
   }
 });
+
 
 // 💸 Списать с баланса
 app.post("/api/spend", async (req, res) => {
