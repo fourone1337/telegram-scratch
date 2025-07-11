@@ -112,15 +112,16 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     console.log("→ Сумма (nanoTON):", nanoAmount.toString());
 
     const found = txs.transactions.find(tx => {
-      if (!tx.incoming || !tx.incoming.source) return false;
+      const inMsg = tx.in_msg;
+      if (!inMsg || !inMsg.source || !inMsg.value) return false;
 
       try {
-        const txRaw = Address.parse(tx.incoming.source).toString();
+        const txRaw = Address.parse(inMsg.source).toString();
         console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
 
         return (
           txRaw === userRaw &&
-          BigInt(tx.incoming.value) >= nanoAmount
+          BigInt(inMsg.value) >= nanoAmount
         );
       } catch (e) {
         console.error("❌ Ошибка парсинга source:", e.message);
@@ -130,8 +131,8 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 
     if (!found) {
       console.log("❌ Перевод не найден. txs:", txs.transactions.map(tx => ({
-        source: tx.incoming?.source,
-        value: tx.incoming?.value
+        source: tx.in_msg?.source,
+        value: tx.in_msg?.value
       })));
       return res.json({ confirmed: false });
     }
