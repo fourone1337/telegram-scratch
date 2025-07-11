@@ -33,6 +33,7 @@ tonConnectUI.onStatusChange(wallet => {
 
   walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
   buyBtn.disabled = !fullAddress;
+  document.getElementById("topup").disabled = !fullAddress; //вставка
   status.textContent = fullAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
@@ -45,7 +46,33 @@ buyBtn.onclick = async () => {
     alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
     return;
   }
+//диапазон вставки
+document.getElementById("topup").onclick = async () => {
+  if (!currentWalletAddress) {
+    alert("Сначала подключите TON-кошелёк");
+    return;
+  }
 
+  const input = prompt("Введите сумму TON для пополнения:");
+  const amount = parseFloat(input);
+
+  if (isNaN(amount) || amount <= 0) {
+    alert("Некорректная сумма");
+    return;
+  }
+
+  try {
+    status.textContent = "⏳ Отправляем запрос на пополнение...";
+    await topUpBalance(currentWalletAddress, amount);
+    await fetchBalance(currentWalletAddress); // Обновление баланса
+    status.textContent = `✅ Баланс пополнен на ${amount} TON`;
+  } catch (err) {
+    console.error("Ошибка пополнения:", err);
+    status.textContent = "❌ Ошибка при пополнении";
+    alert(`Ошибка: ${err.message}`);
+  }
+};
+//диапазон вставки
   try {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
@@ -65,6 +92,19 @@ buyBtn.onclick = async () => {
     buyBtn.disabled = false;
   }
 };
+
+// Функция пополнения баланса
+async function topUpBalance(address, amount) {
+  const res = await fetch(`${SERVER_URL}/api/topup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, amount })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
+  return data;
+}
 
 async function spendBalance(address, amount) {
   const res = await fetch(`${SERVER_URL}/api/spend`, {
