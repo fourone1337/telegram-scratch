@@ -1,3 +1,4 @@
+// ✅ app.js — очищенный и актуализированный
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
@@ -18,11 +19,6 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
-// 🔧 raw (0:...) → friendly (UQ...) адрес
-function rawToFriendly(raw) {
-  return new TonWeb.utils.Address(raw).toString(true, true, false);
-}
-
 // ✅ Инициализация TonConnect
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
@@ -30,26 +26,24 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  const fullRawAddress = wallet?.account?.address || "";
-  const friendlyAddress = fullRawAddress ? rawToFriendly(fullRawAddress) : null;
-
-  const shortAddress = friendlyAddress
-    ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
+  const fullAddress = wallet?.account?.address || "";
+  const shortAddress = fullAddress
+    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  currentWalletAddress = friendlyAddress;
-  walletDisplay.textContent = friendlyAddress
+  currentWalletAddress = fullAddress || null;
+  walletDisplay.textContent = fullAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !friendlyAddress;
-  document.getElementById("topup").disabled = !friendlyAddress;
+  buyBtn.disabled = !fullAddress;
+  document.getElementById("topup").disabled = !fullAddress;
 
-  status.textContent = friendlyAddress
+  status.textContent = fullAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (friendlyAddress) fetchBalance(friendlyAddress);
+  if (fullAddress) fetchBalance(fullAddress);
 });
 
 // ✅ Кнопка "Купить билет"
