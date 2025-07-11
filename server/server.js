@@ -100,6 +100,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 
     if (error) {
       console.error("❌ Ошибка при зачислении:", error.message);
+      console.error("Полная ошибка:", error); // 👈 добавь это
       return res.status(500).json({ error: "Ошибка зачисления баланса" });
     }
 
