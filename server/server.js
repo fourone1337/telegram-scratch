@@ -1,13 +1,13 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const fetch = require("node-fetch"); // добавь, если не используешь глобальный fetch
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Подключение к Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
@@ -28,7 +28,7 @@ app.post("/api/wins", async (req, res) => {
   res.json({ success: true });
 });
 
-// 💰 Пополнить баланс (через RPC Supabase)
+// 💰 Пополнить виртуальный баланс (без проверки TON)
 app.post("/api/topup", async (req, res) => {
   const { address, amount } = req.body;
 
@@ -45,54 +45,19 @@ app.post("/api/topup", async (req, res) => {
   res.json({ balance: data });
 });
 
-// 🔍 Получить текущий баланс
-app.get("/api/verify-topup/:address/:amount", async (req, res) => {
-  const { address, amount } = req.params;
-  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g"; // куда отправляют TON
-  const TONAPI_KEY = process.env.TONAPI_KEY;
+// 🔍 Получить текущий виртуальный баланс (и создать пользователя при необходимости)
+app.get("/api/balance/:address", async (req, res) => {
+  const { address } = req.params;
 
-  try {
-    const response = await fetch(`https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=10`, {
-      headers: { Authorization: `Bearer ${TONAPI_KEY}` }
-    });
-
-    const txs = await response.json();
-
-    const found = txs.transactions.find(tx =>
-      tx.incoming &&
-      tx.incoming.source === address &&
-      parseFloat(tx.incoming.value) >= parseFloat(amount) * 1e9
-    );
-
-    if (!found) {
-      return res.json({ confirmed: false });
-    }
-
-    // теперь зачисляем
-    await supabase.rpc("increment_balance", {
-      user_address: address,
-      add_amount: parseFloat(amount)
-    });
-
-    return res.json({ confirmed: true });
-  } catch (err) {
-    console.error("Ошибка проверки перевода:", err);
-    return res.status(500).json({ error: "Проверка TON не удалась" });
-  }
-});
-
-
-  // 🛠️ Пытаемся вставить нового пользователя, если его ещё нет
   const { error: upsertError } = await supabase
     .from("users")
-    .upsert({ address, balance: 0 }, { onConflict: ['address'] });
+    .upsert({ address, balance: 0 }, { onConflict: ["address"] });
 
   if (upsertError) {
     console.error("Ошибка upsert:", upsertError.message);
     return res.status(500).json({ error: "Ошибка создания пользователя" });
   }
 
-  // 🔍 Получаем баланс
   const { data, error } = await supabase
     .from("users")
     .select("balance")
@@ -107,9 +72,46 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   res.json({ balance: data.balance });
 });
 
+// 🔐 Проверка реального перевода через TonAPI
+app.get("/api/verify-topup/:address/:amount", async (req, res) => {
+  const { address, amount } = req.params;
+  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
+  const TONAPI_KEY = process.env.TONAPI_KEY;
 
+  try {
+    const response = await fetch(
+      `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=10`,
+      {
+        headers: {
+          Authorization: `Bearer ${TONAPI_KEY}`
+        }
+      }
+    );
 
-// 💸 Списать сумму с баланса
+    const txs = await response.json();
+    const found = txs.transactions.find(tx =>
+      tx.incoming &&
+      tx.incoming.source === address &&
+      parseFloat(tx.incoming.value) >= parseFloat(amount) * 1e9
+    );
+
+    if (!found) {
+      return res.json({ confirmed: false });
+    }
+
+    await supabase.rpc("increment_balance", {
+      user_address: address,
+      add_amount: parseFloat(amount)
+    });
+
+    return res.json({ confirmed: true });
+  } catch (err) {
+    console.error("Ошибка проверки перевода:", err);
+    return res.status(500).json({ error: "Проверка TON не удалась" });
+  }
+});
+
+// 💸 Списать с баланса
 app.post("/api/spend", async (req, res) => {
   const { address, amount } = req.body;
 
