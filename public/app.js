@@ -34,6 +34,7 @@ tonConnectUI.onStatusChange(wallet => {
   walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
   buyBtn.disabled = !fullAddress;
   document.getElementById("topup").disabled = !fullAddress; //вставка
+  
   status.textContent = fullAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
@@ -75,16 +76,30 @@ document.getElementById("topup").onclick = async () => {
   }
 
   try {
-    status.textContent = "⏳ Отправляем запрос на пополнение...";
+    status.textContent = "⏳ Ожидаем подтверждение транзакции...";
+
+    // 👉 Отправка TON через TonConnect
+    await tonConnectUI.sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 300,
+      messages: [
+        {
+          address: "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g", // замените на ваш
+          amount: (amount * 1e9).toString(), // в нанотонах
+        }
+      ]
+    });
+
+    // 👉 Если транзакция прошла — зачисляем виртуально
     await topUpBalance(currentWalletAddress, amount);
-    await fetchBalance(currentWalletAddress); // Обновление баланса
-    status.textContent = `✅ Баланс пополнен на ${amount} TON`;
+    await fetchBalance(currentWalletAddress);
+    status.textContent = `✅ Пополнение на ${amount} TON успешно`;
   } catch (err) {
-    console.error("Ошибка пополнения:", err);
-    status.textContent = "❌ Ошибка при пополнении";
-    alert(`Ошибка: ${err.message}`);
+    console.error("❌ Ошибка при пополнении:", err);
+    status.textContent = "❌ Пополнение отменено или не удалось";
+    alert(err.message);
   }
 };
+
 //диапазон вставки
   try {
     buyBtn.disabled = true;
