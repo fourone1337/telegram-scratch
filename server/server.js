@@ -125,18 +125,36 @@ app.post("/api/spend", async (req, res) => {
 app.get("/api/balance/:address", async (req, res) => {
   const { address } = req.params;
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("users")
     .select("balance")
     .eq("address", address)
     .single();
 
-  if (error || !data) {
-    return res.status(404).json({ error: "Пользователь не найден" });
+  // Если пользователь не найден — создаём его
+  if (error && error.code === 'PGRST116') {
+    const insert = await supabase
+      .from("users")
+      .insert([{ address, balance: 0, created_at: new Date().toISOString() }])
+      .select()
+      .single();
+
+    if (insert.error) {
+      console.error("❌ Ошибка создания пользователя:", insert.error.message);
+      return res.status(500).json({ error: "Ошибка создания пользователя" });
+    }
+
+    return res.json({ balance: 0 });
+  }
+
+  if (error) {
+    console.error("❌ Ошибка получения баланса:", error.message);
+    return res.status(500).json({ error: "Ошибка запроса баланса" });
   }
 
   res.json({ balance: data.balance });
 });
+
 
 // ▶️ Запуск сервера
 const PORT = process.env.PORT || 3001;
