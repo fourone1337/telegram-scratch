@@ -131,11 +131,19 @@ app.get("/api/balance/:address", async (req, res) => {
     .eq("address", address)
     .single();
 
-  // Если пользователь не найден — создаём его
   if (error && error.code === 'PGRST116') {
+    console.log("👤 Пользователь не найден, пробуем создать...");
+
     const insert = await supabase
       .from("users")
-      .insert([{ address, balance: 0, created_at: new Date().toISOString() }])
+      .insert([
+        {
+          address,
+          balance: 0,
+          created_at: new Date().toISOString(), // добавим явно
+          updated_at: new Date().toISOString()
+        }
+      ])
       .select()
       .single();
 
@@ -148,30 +156,15 @@ app.get("/api/balance/:address", async (req, res) => {
   }
 
   if (error) {
-    console.error("❌ Ошибка получения баланса:", error.message);
+    console.error("❌ Ошибка запроса баланса:", error.message);
     return res.status(500).json({ error: "Ошибка запроса баланса" });
   }
 
-  res.json({ balance: data.balance });
-});
-
-app.get("/api/wins", async (req, res) => {
-  const { data, error } = await supabase
-    .from("wins")
-    .select("*")
-    .order("date", { ascending: false })
-    .limit(20);
-
-  if (error) {
-    console.error("Ошибка получения победителей:", error.message);
-    return res.status(500).json({ error: "Ошибка загрузки победителей" });
-  }
-
-  res.json(data);
+  return res.json({ balance: data.balance });
 });
 
 // ▶️ Запуск сервера
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`✅ Сервер запущен на http://localhost:${PORT}`);
+  console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
