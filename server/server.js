@@ -76,7 +76,8 @@ app.get("/api/balance/:address", async (req, res) => {
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const { address, amount } = req.params;
   const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g"; // твой TON-кошелёк
-  const TONAPI_KEY = process.env.TONAPI_KEY;
+ const TONAPI_KEY = process.env.TONAPI_KEY;
+console.log("TONAPI_KEY:", TONAPI_KEY); // временно добавь
 
   try {
     const response = await fetch(
