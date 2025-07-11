@@ -41,6 +41,19 @@ tonConnectUI.onStatusChange(wallet => {
   if (fullAddress) fetchBalance(fullAddress);
 });
 
+// Функция пополнения баланса
+async function topUpBalance(address, amount) {
+  const res = await fetch(`${SERVER_URL}/api/topup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, amount })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
+  return data;
+}
+
 buyBtn.onclick = async () => {
   if (!currentWalletAddress) {
     alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
@@ -92,19 +105,6 @@ document.getElementById("topup").onclick = async () => {
     buyBtn.disabled = false;
   }
 };
-
-// Функция пополнения баланса
-async function topUpBalance(address, amount) {
-  const res = await fetch(`${SERVER_URL}/api/topup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address, amount })
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
-  return data;
-}
 
 async function spendBalance(address, amount) {
   const res = await fetch(`${SERVER_URL}/api/spend`, {
