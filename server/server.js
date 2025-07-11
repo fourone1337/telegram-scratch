@@ -51,6 +51,11 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
   const TONAPI_KEY = process.env.TONAPI_KEY;
 
+  console.log("==================================");
+  console.log("🔔 [verify-topup] Запрос получен");
+  console.log("➡️  Адрес от клиента:", address);
+  console.log("➡️  Сумма:", amount);
+
   try {
     const response = await fetch(
       `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=20`,
@@ -62,8 +67,9 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     const txs = await response.json();
     const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
 
-    console.log("🔍 Проверка перевода от:", address);
-    console.log("Искомая сумма:", nanoAmount.toString(), "наноTON");
+    console.log("📦 Получено транзакций:", txs.transactions.length);
+    console.log("🔎 Ищем перевод от:", address);
+    console.log("🔎 Искомая сумма (наноTON):", nanoAmount.toString());
 
     const found = txs.transactions.find(tx =>
       tx.incoming &&
@@ -72,34 +78,43 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     );
 
     if (!found) {
-      console.log("❌ Перевод не найден для", address);
+      console.log("❌ Перевод не найден");
+      console.log("==================================");
       return res.json({ confirmed: false });
     }
 
-    console.log("✅ Перевод найден! Зачисляем баланс...");
+    console.log("✅ Перевод найден:");
+    console.log("🧾 От:", found.incoming.source);
+    console.log("💰 Сумма:", found.incoming.value);
+
+    const parsedAmount = parseFloat(amount);
+
+    console.log("📤 Отправляем в increment_balance:");
+    console.log("➡️  user_address:", address);
+    console.log("➡️  add_amount:", parsedAmount);
 
     const { data, error } = await supabase.rpc("increment_balance", {
       user_address: address,
-      add_amount: parseFloat(amount)
-    });
-
-    console.log("📤 increment_balance вызов:", {
-      user_address: address,
-      add_amount: parseFloat(amount),
-      error
+      add_amount: parsedAmount
     });
 
     if (error) {
-      console.error("❌ Ошибка при зачислении:", error.message);
+      console.error("❌ Ошибка increment_balance:", error.message);
+      console.log("==================================");
       return res.status(500).json({ error: "Ошибка зачисления баланса" });
     }
 
+    console.log("✅ Баланс обновлён:", data);
+    console.log("==================================");
+
     return res.json({ confirmed: true });
   } catch (err) {
-    console.error("❌ Ошибка проверки TON:", err);
+    console.error("❌ Ошибка во время запроса:", err);
+    console.log("==================================");
     return res.status(500).json({ error: "Проверка TON не удалась" });
   }
 });
+
 
 // 🧾 Получить баланс (и создать пользователя, если нет)
 app.get("/api/balance/:address", async (req, res) => {
