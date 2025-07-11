@@ -99,6 +99,21 @@ document.getElementById("topup").onclick = async () => {
     alert(err.message);
   }
 };
+//***
+await tonConnectUI.sendTransaction({ ... });
+
+status.textContent = "⏳ Проверяем перевод...";
+
+const verifyRes = await fetch(`${SERVER_URL}/api/verify-topup/${currentWalletAddress}/${amount}`);
+const verifyData = await verifyRes.json();
+
+if (verifyData.confirmed) {
+  await fetchBalance(currentWalletAddress);
+  status.textContent = `✅ Пополнение ${amount} TON успешно`;
+} else {
+  status.textContent = "❌ Перевод не найден. Попробуйте позже.";
+}
+//**
 
 //диапазон вставки
   try {
