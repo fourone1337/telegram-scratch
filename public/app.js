@@ -110,9 +110,12 @@ document.getElementById("topup").onclick = async () => {
 
 // ✅ Проверка через сервер, был ли перевод
 async function verifyTopup(address, amount) {
+    console.log("→ verifyTopup вызывается с:", address, amount); // 👈 лог
   status.textContent = "⏳ Проверяем перевод...";
-  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
+  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`); // может путь ???
   const data = await res.json();
+
+  console.log("Ответ от сервера:", data); // 👈 лог
 
   if (data.confirmed) {
     await fetchBalance(address);
