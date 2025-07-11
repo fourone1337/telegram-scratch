@@ -1,66 +1,30 @@
-const buyBtn = document.getElementById("buy");
-const status = document.getElementById("status");
-const walletDisplay = document.getElementById("wallet-address");
-
-const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
-const emojiRewards = {
-  "🍒": 1,
-  "⭐️": 1,
-  "🍋":1,
-  "🔔": 1,
-  "7️⃣": 1,
-  "💎": 5
-};
-
-const history = [];
-let currentTicket = null;
-let openedIndices = [];
-let currentWalletAddress = null;
-const SERVER_URL = "https://telegram-scratch.onrender.com";
-
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
-  buttonRootId: 'ton-connect'
-});
-
-tonConnectUI.onStatusChange(wallet => {
-  const fullAddress = wallet?.account?.address || "";
-  const shortAddress = fullAddress
-    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
-    : "🔴 Кошелёк не подключён.";
-
-  currentWalletAddress = fullAddress || null;
-
-  walletDisplay.textContent = fullAddress ? `🟢 Кошелёк: ${shortAddress}` : shortAddress;
-  buyBtn.disabled = !fullAddress;
-  document.getElementById("topup").disabled = !fullAddress; //вставка
-  
-  status.textContent = fullAddress
-    ? "Нажмите «Купить билет», чтобы начать игру!"
-    : "Подключите кошелёк для начала игры.";
-
-  if (fullAddress) fetchBalance(fullAddress);
-});
-
-// Функция пополнения баланса
-async function topUpBalance(address, amount) {
-  const res = await fetch(`${SERVER_URL}/api/topup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address, amount })
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
-  return data;
-}
-
 buyBtn.onclick = async () => {
   if (!currentWalletAddress) {
     alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
     return;
   }
-//диапазон вставки
+
+  try {
+    buyBtn.disabled = true;
+    status.textContent = "⏳ Проверяем баланс...";
+
+    await spendBalance(currentWalletAddress, 1); // списание 1 TON
+
+    currentTicket = generateTicket();
+    openedIndices = [];
+    status.textContent = "Выберите 3 ячейки, чтобы открыть";
+    renderTicket(currentTicket);
+    await fetchBalance(currentWalletAddress); // обновление баланса
+  } catch (err) {
+    console.error("Ошибка покупки:", err);
+    alert(`Ошибка: ${err.message}`);
+    status.textContent = "❌ Покупка не удалась. Попробуйте позже.";
+  } finally {
+    buyBtn.disabled = false;
+  }
+};
+
+// 👇 ВСТАВЬ ПОСЛЕ buyBtn.onclick
 document.getElementById("topup").onclick = async () => {
   if (!currentWalletAddress) {
     alert("Сначала подключите TON-кошелёк");
@@ -83,13 +47,13 @@ document.getElementById("topup").onclick = async () => {
       validUntil: Math.floor(Date.now() / 1000) + 300,
       messages: [
         {
-          address: "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g", // замените на ваш
-          amount: (amount * 1e9).toString(), // в нанотонах
+          address: "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g", // адрес бота
+          amount: (amount * 1e9).toString()
         }
       ]
     });
 
-    // 👉 Если транзакция прошла — зачисляем виртуально
+    // 👉 После успешного перевода — пополняем виртуальный баланс
     await topUpBalance(currentWalletAddress, amount);
     await fetchBalance(currentWalletAddress);
     status.textContent = `✅ Пополнение на ${amount} TON успешно`;
@@ -99,8 +63,6 @@ document.getElementById("topup").onclick = async () => {
     alert(err.message);
   }
 };
-//***
-await tonConnectUI.sendTransaction({ ... });
 
 status.textContent = "⏳ Проверяем перевод...";
 
