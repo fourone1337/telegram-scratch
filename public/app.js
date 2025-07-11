@@ -1,3 +1,51 @@
+const buyBtn = document.getElementById("buy");
+const status = document.getElementById("status");
+const walletDisplay = document.getElementById("wallet-address");
+const SERVER_URL = "https://telegram-scratch.onrender.com";
+
+const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
+const emojiRewards = {
+  "🍒": 1,
+  "⭐️": 1,
+  "🍋": 1,
+  "🔔": 1,
+  "7️⃣": 1,
+  "💎": 5
+};
+
+let currentWalletAddress = null;
+let currentTicket = null;
+let openedIndices = [];
+const history = [];
+
+// ✅ Инициализация TonConnect
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
+  buttonRootId: 'ton-connect'
+});
+
+tonConnectUI.onStatusChange(wallet => {
+  const fullAddress = wallet?.account?.address || "";
+  const shortAddress = fullAddress
+    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
+    : "🔴 Кошелёк не подключён.";
+
+  currentWalletAddress = fullAddress || null;
+  walletDisplay.textContent = fullAddress
+    ? `🟢 Кошелёк: ${shortAddress}`
+    : shortAddress;
+
+  buyBtn.disabled = !fullAddress;
+  document.getElementById("topup").disabled = !fullAddress;
+
+  status.textContent = fullAddress
+    ? "Нажмите «Купить билет», чтобы начать игру!"
+    : "Подключите кошелёк для начала игры.";
+
+  if (fullAddress) fetchBalance(fullAddress);
+});
+
+// ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
   if (!currentWalletAddress) {
     alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
@@ -8,13 +56,12 @@ buyBtn.onclick = async () => {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
 
-    await spendBalance(currentWalletAddress, 1); // списание 1 TON
-
+    await spendBalance(currentWalletAddress, 1);
     currentTicket = generateTicket();
     openedIndices = [];
     status.textContent = "Выберите 3 ячейки, чтобы открыть";
     renderTicket(currentTicket);
-    await fetchBalance(currentWalletAddress); // обновление баланса
+    await fetchBalance(currentWalletAddress);
   } catch (err) {
     console.error("Ошибка покупки:", err);
     alert(`Ошибка: ${err.message}`);
@@ -24,7 +71,7 @@ buyBtn.onclick = async () => {
   }
 };
 
-// 👇 ВСТАВЬ ПОСЛЕ buyBtn.onclick
+// ✅ Кнопка "Пополнить"
 document.getElementById("topup").onclick = async () => {
   if (!currentWalletAddress) {
     alert("Сначала подключите TON-кошелёк");
@@ -42,21 +89,18 @@ document.getElementById("topup").onclick = async () => {
   try {
     status.textContent = "⏳ Ожидаем подтверждение транзакции...";
 
-    // 👉 Отправка TON через TonConnect
     await tonConnectUI.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 300,
       messages: [
         {
-          address: "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g", // адрес бота
+          address: "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g",
           amount: (amount * 1e9).toString()
         }
       ]
     });
 
-    // 👉 После успешного перевода — пополняем виртуальный баланс
-    await topUpBalance(currentWalletAddress, amount);
-    await fetchBalance(currentWalletAddress);
-    status.textContent = `✅ Пополнение на ${amount} TON успешно`;
+    // 👇 Проверим перевод и начислим виртуально
+    await verifyTopup(currentWalletAddress, amount);
   } catch (err) {
     console.error("❌ Ошибка при пополнении:", err);
     status.textContent = "❌ Пополнение отменено или не удалось";
@@ -64,39 +108,31 @@ document.getElementById("topup").onclick = async () => {
   }
 };
 
-status.textContent = "⏳ Проверяем перевод...";
+// ✅ Проверка через сервер, был ли перевод
+async function verifyTopup(address, amount) {
+  status.textContent = "⏳ Проверяем перевод...";
+  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
+  const data = await res.json();
 
-const verifyRes = await fetch(`${SERVER_URL}/api/verify-topup/${currentWalletAddress}/${amount}`);
-const verifyData = await verifyRes.json();
-
-if (verifyData.confirmed) {
-  await fetchBalance(currentWalletAddress);
-  status.textContent = `✅ Пополнение ${amount} TON успешно`;
-} else {
-  status.textContent = "❌ Перевод не найден. Попробуйте позже.";
-}
-//**
-
-//диапазон вставки
-  try {
-    buyBtn.disabled = true;
-    status.textContent = "⏳ Проверяем баланс...";
-
-    await spendBalance(currentWalletAddress, 1); // списание 1 TON
-
-    currentTicket = generateTicket();
-    openedIndices = [];
-    status.textContent = "Выберите 3 ячейки, чтобы открыть";
-    renderTicket(currentTicket);
-    await fetchBalance(currentWalletAddress); // обновление баланса
-  } catch (err) {
-    console.error("Ошибка покупки:", err);
-    alert(`Ошибка: ${err.message}`);
-    status.textContent = "❌ Покупка не удалась. Попробуйте позже.";
-  } finally {
-    buyBtn.disabled = false;
+  if (data.confirmed) {
+    await fetchBalance(address);
+    status.textContent = `✅ Пополнение ${amount} TON успешно`;
+  } else {
+    status.textContent = "❌ Перевод не найден. Попробуйте позже.";
   }
-};
+}
+
+async function topUpBalance(address, amount) {
+  const res = await fetch(`${SERVER_URL}/api/topup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, amount })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Ошибка пополнения");
+  return data;
+}
 
 async function spendBalance(address, amount) {
   const res = await fetch(`${SERVER_URL}/api/spend`, {
@@ -115,22 +151,15 @@ async function fetchBalance(address) {
     const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Ошибка запроса");
-    const balanceDiv = document.getElementById("balance-display");
-    balanceDiv.textContent = `💰 Баланс: ${data.balance.toFixed(2)} TON`;
+    document.getElementById("balance-display").textContent = `💰 Баланс: ${data.balance.toFixed(2)} TON`;
   } catch (err) {
     console.error("Ошибка загрузки баланса:", err);
-    const balanceDiv = document.getElementById("balance-display");
-    balanceDiv.textContent = "💰 Баланс: ошибка";
+    document.getElementById("balance-display").textContent = "💰 Баланс: ошибка";
   }
 }
 
 function generateTicket() {
-  const ticket = [];
-  for (let i = 0; i < 6; i++) {
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-    ticket.push(emoji);
-  }
-  return ticket;
+  return Array.from({ length: 6 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
 }
 
 function renderTicket(ticket) {
@@ -184,18 +213,14 @@ function checkWin(ticket) {
     const reward = emojiRewards[symbol] || 0;
     status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
 
-    const address = currentWalletAddress;
-    const emojis = openedEmojis.join('');
-    if (address) {
-      sendWinToServer(address, emojis, reward);
+    if (currentWalletAddress) {
+      sendWinToServer(currentWalletAddress, openedEmojis.join(""), reward);
       fetchWinners();
-      window.addEventListener("focus", fetchWinners);
     }
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
 
-  // 👇 Открываем весь билет после 3-х попыток
   openedIndices = ticket.map((_, i) => i);
   renderTicket(ticket);
 
