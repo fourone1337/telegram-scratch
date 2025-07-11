@@ -40,7 +40,7 @@ app.post("/api/wins", async (req, res) => {
   res.json({ success: true });
 });
 
-// ✅ Проверка перевода TON и зачисление
+/*// ✅ Проверка перевода TON и зачисление
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const { address, amount } = req.params;
   const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
@@ -83,6 +83,74 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     return res.json({ confirmed: true });
   } catch (err) {
     console.error("Ошибка проверки перевода:", err);
+    return res.status(500).json({ error: "Проверка TON не удалась" });
+  }
+});
+*/
+
+// ✅ Проверка перевода TON и зачисление
+app.get("/api/verify-topup/:address/:amount", async (req, res) => {
+  const { address, amount } = req.params;
+  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
+  const TONAPI_KEY = process.env.TONAPI_KEY;
+
+  try {
+    const response = await fetch(
+      `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=50`,
+      {
+        headers: { Authorization: `Bearer ${TONAPI_KEY}` }
+      }
+    );
+
+    const txs = await response.json();
+    const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
+    const userRaw = Address.parseFriendly(address).address.toString();
+
+    console.log("🔍 Проверка перевода TON");
+    console.log("→ Получатель:", RECEIVER_ADDRESS);
+    console.log("→ Ожидаемый отправитель:", userRaw);
+    console.log("→ Сумма (nanoTON):", nanoAmount.toString());
+
+    const found = txs.transactions.find(tx => {
+      if (!tx.incoming || !tx.incoming.source) return false;
+
+      try {
+        const txRaw = Address.parseFriendly(tx.incoming.source).address.toString();
+        console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
+
+        return (
+          txRaw === userRaw &&
+          BigInt(tx.incoming.value) >= nanoAmount
+        );
+      } catch (e) {
+        console.error("❌ Ошибка парсинга source:", e.message);
+        return false;
+      }
+    });
+
+    if (!found) {
+      console.log("❌ Перевод не найден. txs:", txs.transactions.map(tx => ({
+        source: tx.incoming?.source,
+        value: tx.incoming?.value
+      })));
+      return res.json({ confirmed: false });
+    }
+
+    console.log("✅ Перевод найден. Начисляем баланс...");
+
+    const { error } = await supabase.rpc("increment_balance", {
+      user_address: userRaw,
+      add_amount: parseFloat(amount)
+    });
+
+    if (error) {
+      console.error("❌ Ошибка зачисления:", error.message);
+      return res.status(500).json({ error: "Ошибка зачисления баланса" });
+    }
+
+    return res.json({ confirmed: true });
+  } catch (err) {
+    console.error("❌ Ошибка проверки перевода:", err);
     return res.status(500).json({ error: "Проверка TON не удалась" });
   }
 });
@@ -168,3 +236,6 @@ const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
+
+
+
