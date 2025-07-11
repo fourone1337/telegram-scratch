@@ -155,6 +155,20 @@ app.get("/api/balance/:address", async (req, res) => {
   res.json({ balance: data.balance });
 });
 
+app.get("/api/wins", async (req, res) => {
+  const { data, error } = await supabase
+    .from("wins")
+    .select("*")
+    .order("date", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error("Ошибка получения победителей:", error.message);
+    return res.status(500).json({ error: "Ошибка загрузки победителей" });
+  }
+
+  res.json(data);
+});
 
 // ▶️ Запуск сервера
 const PORT = process.env.PORT || 3001;
