@@ -13,7 +13,7 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// 🏆 Запись выигрыша
+/*// 🏆 Запись выигрыша
 app.post("/api/wins", async (req, res) => {
   const { address, emojis, reward, date } = req.body;
   const result = await supabase
@@ -27,9 +27,9 @@ app.post("/api/wins", async (req, res) => {
 
   res.json({ success: true });
 });
-
+*/
 // 💰 Ручное пополнение (без проверки TON)
-app.post("/api/topup", async (req, res) => {
+/*app.post("/api/topup", async (req, res) => {
   const { address, amount } = req.body;
 
   const { data, error } = await supabase.rpc("increment_balance", {
@@ -44,7 +44,7 @@ app.post("/api/topup", async (req, res) => {
 
   res.json({ balance: data });
 });
-
+*/
 // 🔍 Проверка TON-перевода и автоматическое пополнение
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const { address, amount } = req.params;
