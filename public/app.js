@@ -143,6 +143,30 @@ function renderTicket(ticket) {
   });
 }
 
+/*function checkWin(ticket) {
+  const openedEmojis = openedIndices.map(i => ticket[i]);
+  const allSame = openedEmojis.every(e => e === openedEmojis[0]);
+
+  if (allSame) {
+    const symbol = openedEmojis[0];
+    const reward = emojiRewards[symbol] || 0;
+    status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
+
+    const address = currentWalletAddress;
+    const emojis = openedEmojis.join('');
+    if (address) {
+      sendWinToServer(address, emojis, reward);
+      fetchWinners();
+      window.addEventListener("focus", fetchWinners);
+    }
+  } else {
+    status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
+  }
+
+  history.push({ ticket, opened: [...openedIndices], winner: allSame, openedEmojis });
+  renderHistory();
+}*/
+
 function checkWin(ticket) {
   const openedEmojis = openedIndices.map(i => ticket[i]);
   const allSame = openedEmojis.every(e => e === openedEmojis[0]);
@@ -162,6 +186,10 @@ function checkWin(ticket) {
   } else {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
+
+  // 👇 Открываем весь билет после 3-х попыток
+  openedIndices = ticket.map((_, i) => i);
+  renderTicket(ticket);
 
   history.push({ ticket, opened: [...openedIndices], winner: allSame, openedEmojis });
   renderHistory();
