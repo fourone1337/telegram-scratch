@@ -1,9 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch"); // добавь, если не используешь глобальный fetch
+const fetch = require("node-fetch");
 const { createClient } = require("@supabase/supabase-js");
-const { Address } = require('@ton/core'); // Добавь вверху файла
 
 const app = express();
 app.use(cors());
@@ -14,7 +13,7 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// 🎯 Добавить победу
+// 🏆 Запись выигрыша
 app.post("/api/wins", async (req, res) => {
   const { address, emojis, reward, date } = req.body;
   const result = await supabase
@@ -29,13 +28,13 @@ app.post("/api/wins", async (req, res) => {
   res.json({ success: true });
 });
 
-// 💰 Пополнить виртуальный баланс (без проверки TON)
+// 💰 Ручное пополнение (без проверки TON)
 app.post("/api/topup", async (req, res) => {
   const { address, amount } = req.body;
 
   const { data, error } = await supabase.rpc("increment_balance", {
     user_address: address,
-    add_amount: amount
+    add_amount: parseFloat(amount)
   });
 
   if (error) {
@@ -46,73 +45,7 @@ app.post("/api/topup", async (req, res) => {
   res.json({ balance: data });
 });
 
-// 🔍 Получить текущий виртуальный баланс (и создать пользователя при необходимости)
-
-app.get("/api/verify-topup/:address/:amount", async (req, res) => {
-  const { address, amount } = req.params;
-  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g"; // твой TON-кошелёк
-  const TONAPI_KEY = process.env.TONAPI_KEY;
-
-  try {
-    const response = await fetch(
-      `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=20`,
-      {
-        headers: { Authorization: `Bearer ${TONAPI_KEY}` }
-      }
-    );
-
-    const txs = await response.json();
-    const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
-
-    console.log("🔍 Ищем входящий перевод на", RECEIVER_ADDRESS);
-    console.log("Искомый адрес (сырой):", Address.parseFriendly(address).address.toString());
-    console.log("Искомая сумма (в nanoTON):", nanoAmount.toString());
-
-    const found = txs.transactions.find(tx => {
-      if (!tx.incoming || !tx.incoming.source) return false;
-
-      try {
-        const txRaw = Address.parseFriendly(tx.incoming.source).address.toString();
-        const userRaw = Address.parseFriendly(address).address.toString();
-
-        console.log("→ Проверка:", txRaw, "==", userRaw);
-        return (
-          txRaw === userRaw &&
-          BigInt(tx.incoming.value) >= nanoAmount
-        );
-      } catch (e) {
-        console.error("❌ Ошибка парсинга адреса:", e.message);
-        return false;
-      }
-    });
-
-    if (!found) {
-      console.log("❌ Перевод не найден для", address);
-      return res.json({ confirmed: false });
-    }
-
-    console.log("✅ Перевод найден! Зачисляем виртуальный баланс...");
-
-    const { error } = await supabase.rpc("increment_balance", {
-      user_address: Address.parseFriendly(address).address.toString(), // Приводим к raw
-      add_amount: parseFloat(amount)
-    });
-
-    if (error) {
-      console.error("❌ Ошибка при зачислении:", error.message);
-      console.error("Полная ошибка:", error); // 👈 добавь это
-      return res.status(500).json({ error: "Ошибка зачисления баланса" });
-    }
-
-    return res.json({ confirmed: true });
-  } catch (err) {
-    console.error("❌ Ошибка проверки перевода:", err);
-    return res.status(500).json({ error: "Проверка TON не удалась" });
-  }
-});
-
-
-// 🔐 Проверка реального перевода через TonAPI
+// 🔍 Проверка TON-перевода и автоматическое пополнение
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
   const { address, amount } = req.params;
   const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
@@ -129,6 +62,9 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     const txs = await response.json();
     const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
 
+    console.log("🔍 Проверка перевода от:", address);
+    console.log("Искомая сумма:", nanoAmount.toString(), "наноTON");
+
     const found = txs.transactions.find(tx =>
       tx.incoming &&
       tx.incoming.source === address &&
@@ -140,11 +76,17 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       return res.json({ confirmed: false });
     }
 
-    console.log("✅ Перевод найден!");
+    console.log("✅ Перевод найден! Зачисляем баланс...");
 
-    const { error } = await supabase.rpc("increment_balance", {
-      user_address: address,       // 👈 base64 адрес
+    const { data, error } = await supabase.rpc("increment_balance", {
+      user_address: address,
       add_amount: parseFloat(amount)
+    });
+
+    console.log("📤 increment_balance вызов:", {
+      user_address: address,
+      add_amount: parseFloat(amount),
+      error
     });
 
     if (error) {
@@ -154,12 +96,40 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 
     return res.json({ confirmed: true });
   } catch (err) {
-    console.error("❌ Ошибка проверки перевода:", err);
+    console.error("❌ Ошибка проверки TON:", err);
     return res.status(500).json({ error: "Проверка TON не удалась" });
   }
 });
 
-// 💸 Списать с баланса
+// 🧾 Получить баланс (и создать пользователя, если нет)
+app.get("/api/balance/:address", async (req, res) => {
+  const { address } = req.params;
+
+  // auto-upsert пользователя
+  const { error: upsertError } = await supabase
+    .from("users")
+    .upsert({ address, balance: 0 }, { onConflict: ["address"] });
+
+  if (upsertError) {
+    console.error("Ошибка upsert:", upsertError.message);
+    return res.status(500).json({ error: "Ошибка создания пользователя" });
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("balance")
+    .eq("address", address)
+    .single();
+
+  if (error || !data) {
+    console.error("Ошибка получения баланса:", error?.message);
+    return res.status(500).json({ error: "Ошибка получения баланса" });
+  }
+
+  res.json({ balance: data.balance });
+});
+
+// 💸 Списание средств
 app.post("/api/spend", async (req, res) => {
   const { address, amount } = req.body;
 
