@@ -8,7 +8,7 @@ body {
 
 button {
   display: block;
-  margin: 15px 100%;
+  margin: 15px auto;
   padding: 12px 24px;
   font-size: 18px;
   border: none;
@@ -44,7 +44,7 @@ button:disabled {
 #ton-connect {
   display: flex;
   justify-content: center;
-  margin: 10px 100%;
+  margin: 10px auto;
 }
 
 /*Пополнение кошелька*/
@@ -54,7 +54,7 @@ button:disabled {
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin: 20px 100%;
+  margin: 20px auto;
   max-width: 320px;
 }
 
