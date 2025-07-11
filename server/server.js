@@ -104,7 +104,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 
     const txs = await response.json();
     const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
-    const userRaw = Address.parseFriendly(address).address.toString();
+    const userRaw = Address.parse(address).toString();
 
     console.log("🔍 Проверка перевода TON");
     console.log("→ Получатель:", RECEIVER_ADDRESS);
@@ -115,7 +115,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       if (!tx.incoming || !tx.incoming.source) return false;
 
       try {
-        const txRaw = Address.parseFriendly(tx.incoming.source).address.toString();
+        const txRaw = Address.parse(tx.incoming.source).toString();
         console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
 
         return (
