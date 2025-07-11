@@ -46,8 +46,41 @@ app.post("/api/topup", async (req, res) => {
 });
 
 // 🔍 Получить текущий баланс
-app.get("/api/balance/:address", async (req, res) => {
-  const { address } = req.params;
+app.get("/api/verify-topup/:address/:amount", async (req, res) => {
+  const { address, amount } = req.params;
+  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g"; // куда отправляют TON
+  const TONAPI_KEY = process.env.TONAPI_KEY;
+
+  try {
+    const response = await fetch(`https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=10`, {
+      headers: { Authorization: `Bearer ${TONAPI_KEY}` }
+    });
+
+    const txs = await response.json();
+
+    const found = txs.transactions.find(tx =>
+      tx.incoming &&
+      tx.incoming.source === address &&
+      parseFloat(tx.incoming.value) >= parseFloat(amount) * 1e9
+    );
+
+    if (!found) {
+      return res.json({ confirmed: false });
+    }
+
+    // теперь зачисляем
+    await supabase.rpc("increment_balance", {
+      user_address: address,
+      add_amount: parseFloat(amount)
+    });
+
+    return res.json({ confirmed: true });
+  } catch (err) {
+    console.error("Ошибка проверки перевода:", err);
+    return res.status(500).json({ error: "Проверка TON не удалась" });
+  }
+});
+
 
   // 🛠️ Пытаемся вставить нового пользователя, если его ещё нет
   const { error: upsertError } = await supabase
