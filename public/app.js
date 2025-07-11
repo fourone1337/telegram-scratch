@@ -4,12 +4,12 @@ const walletDisplay = document.getElementById("wallet-address");
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 const emojiRewards = {
-  "🍒": 0.1,
-  "⭐️": 0.1,
-  "🍋": 0.1,
-  "🔔": 0.1,
-  "7️⃣": 0.1,
-  "💎": 0.1
+  "🍒": 1,
+  "⭐️": 1,
+  "🍋":1,
+  "🔔": 1,
+  "7️⃣": 1,
+  "💎": 5
 };
 
 const history = [];
@@ -142,30 +142,6 @@ function renderTicket(ticket) {
     container.appendChild(cell);
   });
 }
-
-/*function checkWin(ticket) {
-  const openedEmojis = openedIndices.map(i => ticket[i]);
-  const allSame = openedEmojis.every(e => e === openedEmojis[0]);
-
-  if (allSame) {
-    const symbol = openedEmojis[0];
-    const reward = emojiRewards[symbol] || 0;
-    status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
-
-    const address = currentWalletAddress;
-    const emojis = openedEmojis.join('');
-    if (address) {
-      sendWinToServer(address, emojis, reward);
-      fetchWinners();
-      window.addEventListener("focus", fetchWinners);
-    }
-  } else {
-    status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
-  }
-
-  history.push({ ticket, opened: [...openedIndices], winner: allSame, openedEmojis });
-  renderHistory();
-}*/
 
 function checkWin(ticket) {
   const openedEmojis = openedIndices.map(i => ticket[i]);
