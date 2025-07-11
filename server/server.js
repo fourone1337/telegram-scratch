@@ -49,35 +49,31 @@ app.post("/api/topup", async (req, res) => {
 app.get("/api/balance/:address", async (req, res) => {
   const { address } = req.params;
 
-  let { data, error } = await supabase
+  // 🛠️ Пытаемся вставить нового пользователя, если его ещё нет
+  const { error: upsertError } = await supabase
+    .from("users")
+    .upsert({ address, balance: 0 }, { onConflict: ['address'] });
+
+  if (upsertError) {
+    console.error("Ошибка upsert:", upsertError.message);
+    return res.status(500).json({ error: "Ошибка создания пользователя" });
+  }
+
+  // 🔍 Получаем баланс
+  const { data, error } = await supabase
     .from("users")
     .select("balance")
     .eq("address", address)
     .single();
 
-  if (error && error.message.includes("multiple")) {
-    return res.status(500).json({ error: "Дублирующий адрес в базе." });
-  }
-
-  // если пользователь не найден — создаём его с нулевым балансом
-  if (error && error.message.includes("no rows")) {
-    const { data: insertData, error: insertError } = await supabase
-      .from("users")
-      .insert({ address, balance: 0 });
-
-    if (insertError) {
-      return res.status(500).json({ error: insertError.message });
-    }
-
-    return res.json({ balance: 0 });
-  }
-
   if (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Ошибка получения баланса:", error.message);
+    return res.status(500).json({ error: "Ошибка получения баланса" });
   }
 
   res.json({ balance: data.balance });
 });
+
 
 
 // 💸 Списать сумму с баланса
