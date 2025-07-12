@@ -144,11 +144,12 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       add_amount: parseFloat(amount)
     });
 
-    if (error) {
-      console.error("❌ Ошибка зачисления:", error.message);
-      return res.status(500).json({ error: "Ошибка зачисления баланса" });
-    }
-
+   if (error) {
+  console.error("❌ Ошибка зачисления:", error.message);
+  return res.status(500).json({ error: "Ошибка зачисления баланса" });
+} else {
+  console.log("✅ Баланс успешно увеличен");
+}
     return res.json({ confirmed: true });
   } catch (err) {
     console.error("❌ Ошибка проверки перевода:", err);
