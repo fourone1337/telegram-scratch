@@ -110,37 +110,31 @@ document.getElementById("topup").onclick = async () => {
 };
 
 // ✅ Кнопка "Вывести"
-document.getElementById("withdraw-btn").addEventListener("click", async () => {
-  const rawAmount = prompt("Введите сумму TON для вывода:");
-  const amount = parseFloat(rawAmount);
-
-  if (isNaN(amount) || amount <= 0) {
-    alert("Введите корректную сумму.");
-    return;
-  }
-
+document.getElementById("withdraw").addEventListener("click", async () => {
   try {
-    const res = await fetch("/api/request-withdraw", {
+    const address = tonConnectUI.connectedWallet.account.address;
+    const amount = parseFloat(prompt("Введите сумму для вывода в TON"));
+
+    if (!amount || amount <= 0) return alert("Некорректная сумма");
+
+    const response = await fetch("/api/request-withdraw", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        address: wallet.account.address,
-        amount
-      })
+      body: JSON.stringify({ address, amount })
     });
 
-    const data = await res.json();
-
+    const data = await response.json();
     if (data.success) {
-      alert("✅ Заявка на вывод создана. Выплата будет выполнена в ближайшее время.");
+      alert("✅ Заявка на вывод принята");
     } else {
-      alert("❌ Ошибка: " + (data.error || "Неизвестная ошибка"));
+      alert("❌ Ошибка при выводе: " + data.error);
     }
-  } catch (err) {
-    console.error("❌ Ошибка при выводе:", err);
-    alert("Ошибка при отправке заявки на вывод.");
+  } catch (e) {
+    console.error("❌ Ошибка при выводе:", e);
+    alert("❌ Ошибка при выводе: " + e.message);
   }
 });
+
 
 // ✅ Проверка через сервер, был ли перевод
 async function verifyTopup(address, amount) {
