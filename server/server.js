@@ -4,24 +4,21 @@ const cors = require("cors");
 const fetch = require("node-fetch");
 const { createClient } = require("@supabase/supabase-js");
 const { Address } = require("@ton/core");
+const { mnemonicToPrivateKey } = require("@ton/crypto");
+const { TonClient, WalletContractV4, internal } = require("@ton/ton");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 // ✅ Добавление победы + автоначисление награды
 app.post("/api/wins", async (req, res) => {
   const { address, emojis, reward, date } = req.body;
   const userAddress = Address.parse(address).toString();
 
-  const result = await supabase
-    .from("wins")
-    .insert([{ address: userAddress, emojis, reward, date }]);
+  const result = await supabase.from("wins").insert([{ address: userAddress, emojis, reward, date }]);
 
   if (result.error) {
     console.error("❌ Ошибка записи в wins:", result.error.message);
@@ -59,28 +56,18 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
     const userAddress = Address.parse(address).toString();
 
-    console.log("🔍 Проверка перевода TON");
-    console.log("→ Получатель:", RECEIVER_ADDRESS);
-    console.log("→ Ожидаемый отправитель:", userAddress);
-    console.log("→ Сумма (nanoTON):", nanoAmount.toString());
-
     const found = txs.transactions.find(tx => {
       const inMsg = tx.in_msg;
       if (!inMsg || !inMsg.source || !inMsg.value || !inMsg.source.address) return false;
-
       try {
         const txSender = Address.parse(inMsg.source.address).toString();
         return txSender === userAddress && BigInt(inMsg.value) >= nanoAmount;
       } catch (e) {
-        console.error("❌ Ошибка парсинга:", e.message);
         return false;
       }
     });
 
-    if (!found) {
-      console.log("❌ Перевод не найден");
-      return res.json({ confirmed: false });
-    }
+    if (!found) return res.json({ confirmed: false });
 
     const { error } = await supabase.rpc("increment_balance", {
       user_address: userAddress,
@@ -92,48 +79,11 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       return res.status(500).json({ error: "Ошибка зачисления баланса" });
     }
 
-    console.log("✅ Баланс успешно увеличен");
     return res.json({ confirmed: true });
-
   } catch (err) {
     console.error("❌ Ошибка проверки перевода:", err);
     return res.status(500).json({ error: "Проверка TON не удалась" });
   }
-});
-
-// ✅ Списание с баланса
-app.post("/api/spend", async (req, res) => {
-  const { address, amount } = req.body;
-  const userAddress = Address.parse(address).toString();
-
-  const { data, error: selectError } = await supabase
-    .from("users")
-    .select("balance")
-    .eq("address", userAddress)
-    .single();
-
-  if (selectError || !data) {
-    return res.status(404).json({ error: "Баланс не найден." });
-  }
-
-  if (data.balance < amount) {
-    return res.status(400).json({ error: "Недостаточно средств." });
-  }
-
-  const { error: updateError } = await supabase
-    .from("users")
-    .update({
-      balance: data.balance - amount,
-      updated_at: new Date().toISOString()
-    })
-    .eq("address", userAddress);
-
-  if (updateError) {
-    console.error("❌ Ошибка при списании:", updateError.message);
-    return res.status(500).json({ error: "Ошибка при списании." });
-  }
-
-  res.json({ success: true });
 });
 
 // ✅ Получение баланса
@@ -147,9 +97,7 @@ app.get("/api/balance/:address", async (req, res) => {
     .eq("address", userAddress)
     .single();
 
-  if (error && error.code === 'PGRST116') {
-    console.log("👤 Пользователь не найден, создаём:", userAddress);
-
+  if (error && error.code === "PGRST116") {
     const insert = await supabase
       .from("users")
       .insert([
@@ -179,10 +127,38 @@ app.get("/api/balance/:address", async (req, res) => {
   return res.json({ balance: data.balance });
 });
 
+// ✅ Добавление в очередь на вывод
+app.post("/api/request-withdraw", async (req, res) => {
+  const { address, amount } = req.body;
+  const userAddress = Address.parse(address).toString();
+
+  const { data, error: readError } = await supabase
+    .from("users")
+    .select("balance")
+    .eq("address", userAddress)
+    .single();
+
+  if (readError || !data) return res.status(400).json({ error: "Пользователь не найден" });
+  if (data.balance < amount) return res.status(400).json({ error: "Недостаточно средств" });
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ balance: data.balance - amount, updated_at: new Date().toISOString() })
+    .eq("address", userAddress);
+
+  if (updateError) return res.status(500).json({ error: "Не удалось списать средства" });
+
+  const { error: queueError } = await supabase
+    .from("withdraw_queue")
+    .insert([{ address: userAddress, amount }]);
+
+  if (queueError) return res.status(500).json({ error: "Ошибка записи в очередь" });
+
+  res.json({ success: true });
+});
+
 // ▶️ Запуск сервера
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
-
-
