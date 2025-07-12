@@ -17,7 +17,7 @@ const supabase = createClient(
 // ✅ Добавление победы + автоначисление награды
 app.post("/api/wins", async (req, res) => {
   const { address, emojis, reward, date } = req.body;
-  const userAddress = Address.parse(address).toFriendly();
+  const userAddress = Address.parse(address).toString();
 
   const result = await supabase
     .from("wins")
@@ -57,7 +57,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 
     const txs = await response.json();
     const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
-    const userAddress = Address.parse(address).toFriendly();
+    const userAddress = Address.parse(address).toString();
 
     console.log("🔍 Проверка перевода TON");
     console.log("→ Получатель:", RECEIVER_ADDRESS);
@@ -69,8 +69,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       if (!inMsg || !inMsg.source || !inMsg.value || !inMsg.source.address) return false;
 
       try {
-        const txSender = Address.parse(inMsg.source.address).toFriendly();
-        console.log(`→ Сравнение: ${txSender} === ${userAddress} ?`);
+        const txSender = Address.parse(inMsg.source.address).toString();
         return txSender === userAddress && BigInt(inMsg.value) >= nanoAmount;
       } catch (e) {
         console.error("❌ Ошибка парсинга:", e.message);
@@ -79,14 +78,9 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     });
 
     if (!found) {
-      console.log("❌ Перевод не найден. txs:", txs.transactions.map(tx => ({
-        source: tx.in_msg?.source?.address,
-        value: tx.in_msg?.value
-      })));
+      console.log("❌ Перевод не найден");
       return res.json({ confirmed: false });
     }
-
-    console.log("✅ Перевод найден. Начисляем баланс...");
 
     const { error } = await supabase.rpc("increment_balance", {
       user_address: userAddress,
@@ -110,7 +104,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 // ✅ Списание с баланса
 app.post("/api/spend", async (req, res) => {
   const { address, amount } = req.body;
-  const userAddress = Address.parse(address).toFriendly();
+  const userAddress = Address.parse(address).toString();
 
   const { data, error: selectError } = await supabase
     .from("users")
@@ -145,7 +139,7 @@ app.post("/api/spend", async (req, res) => {
 // ✅ Получение баланса
 app.get("/api/balance/:address", async (req, res) => {
   const raw = req.params.address;
-  const userAddress = Address.parse(raw).toFriendly();
+  const userAddress = Address.parse(raw).toString();
 
   let { data, error } = await supabase
     .from("users")
@@ -154,7 +148,7 @@ app.get("/api/balance/:address", async (req, res) => {
     .single();
 
   if (error && error.code === 'PGRST116') {
-    console.log("👤 Пользователь не найден, пробуем создать...");
+    console.log("👤 Пользователь не найден, создаём:", userAddress);
 
     const insert = await supabase
       .from("users")
