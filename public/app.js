@@ -112,6 +112,10 @@ document.getElementById("topup").onclick = async () => {
 // ✅ Кнопка "Вывести"
 document.getElementById("withdraw").addEventListener("click", async () => {
   try {
+    if (!tonConnectUI.connectedWallet || !tonConnectUI.connectedWallet.account) {
+      return alert("❌ Кошелек не подключен");
+    }
+
     const address = tonConnectUI.connectedWallet.account.address;
     const amount = parseFloat(prompt("Введите сумму для вывода в TON"));
 
@@ -134,6 +138,7 @@ document.getElementById("withdraw").addEventListener("click", async () => {
     alert("❌ Ошибка при выводе: " + e.message);
   }
 });
+
 
 
 // ✅ Проверка через сервер, был ли перевод
