@@ -112,22 +112,23 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     console.log("→ Сумма (nanoTON):", nanoAmount.toString());
 
     const found = txs.transactions.find(tx => {
-      const inMsg = tx.in_msg;
-      if (!inMsg || !inMsg.source || !inMsg.value) return false;
+  const inMsg = tx.in_msg;
+  if (!inMsg || !inMsg.source || !inMsg.value) return false;
 
-      try {
-        const txRaw = Address.parse(inMsg.source).toString();
-        console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
+  try {
+    const txRaw = Address.parse(inMsg.source.address).toString();
+    const userRaw = Address.parse(address).toString();
+    console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
 
-        return (
-          txRaw === userRaw &&
-          BigInt(inMsg.value) >= nanoAmount
-        );
-      } catch (e) {
-        console.error("❌ Ошибка парсинга source:", e.message);
-        return false;
-      }
-    });
+    return (
+      txRaw === userRaw &&
+      BigInt(inMsg.value) >= nanoAmount
+    );
+  } catch (e) {
+    console.error("❌ Ошибка парсинга source:", e.message);
+    return false;
+  }
+});
 
     if (!found) {
       console.log("❌ Перевод не найден. txs:", txs.transactions.map(tx => ({
