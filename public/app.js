@@ -110,18 +110,24 @@ document.getElementById("topup").onclick = async () => {
 };
 
 // ✅ Кнопка "Вывести"
+// ✅ Кнопка "Вывести"
 document.getElementById("withdraw").addEventListener("click", async () => {
   try {
-    if (!tonConnectUI.connectedWallet || !tonConnectUI.connectedWallet.account) {
+    const wallet = await tonConnectUI.wallet;
+    if (!wallet || !wallet.account || !wallet.account.address) {
       return alert("❌ Кошелек не подключен");
     }
 
-    const address = tonConnectUI.connectedWallet.account.address;
-    const amount = parseFloat(prompt("Введите сумму для вывода в TON"));
+    const address = wallet.account.address;
+    const input = prompt("Введите сумму для вывода в TON");
+    const amount = parseFloat(input);
 
-    if (!amount || amount <= 0) return alert("Некорректная сумма");
+    if (isNaN(amount) || amount <= 0) {
+      alert("❌ Некорректная сумма");
+      return;
+    }
 
-    const response = await fetch("/api/request-withdraw", {
+    const response = await fetch(`${SERVER_URL}/api/request-withdraw`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address, amount })
@@ -138,6 +144,7 @@ document.getElementById("withdraw").addEventListener("click", async () => {
     alert("❌ Ошибка при выводе: " + e.message);
   }
 });
+
 
 
 
