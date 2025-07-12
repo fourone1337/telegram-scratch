@@ -23,7 +23,7 @@ app.post("/api/wins", async (req, res) => {
     .insert([{ address, emojis, reward, date }]);
 
   if (result.error) {
-    console.error("Ошибка записи в wins:", result.error.message);
+    console.error("❌ Ошибка записи в wins:", result.error.message);
     return res.status(500).json({ error: result.error.message });
   }
 
@@ -33,60 +33,12 @@ app.post("/api/wins", async (req, res) => {
   });
 
   if (rewardError) {
-    console.error("Ошибка начисления награды:", rewardError.message);
+    console.error("❌ Ошибка начисления награды:", rewardError.message);
     return res.status(500).json({ error: rewardError.message });
   }
 
   res.json({ success: true });
 });
-
-/*// ✅ Проверка перевода TON и зачисление
-app.get("/api/verify-topup/:address/:amount", async (req, res) => {
-  const { address, amount } = req.params;
-  const RECEIVER_ADDRESS = "UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g";
-  const TONAPI_KEY = process.env.TONAPI_KEY;
-
-  try {
-    const response = await fetch(
-      `https://tonapi.io/v2/blockchain/accounts/${RECEIVER_ADDRESS}/transactions?limit=20`,
-      {
-        headers: { Authorization: `Bearer ${TONAPI_KEY}` }
-      }
-    );
-
-    const txs = await response.json();
-    const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
-
-    const found = txs.transactions.find(tx => {
-      if (!tx.incoming || !tx.incoming.source) return false;
-      try {
-        const txRaw = Address.parseFriendly(tx.incoming.source).address.toString();
-        const userRaw = Address.parseFriendly(address).address.toString();
-        return txRaw === userRaw && BigInt(tx.incoming.value) >= nanoAmount;
-      } catch {
-        return false;
-      }
-    });
-
-    if (!found) return res.json({ confirmed: false });
-
-    const { error } = await supabase.rpc("increment_balance", {
-      user_address: Address.parseFriendly(address).address.toString(),
-      add_amount: parseFloat(amount)
-    });
-
-    if (error) {
-      console.error("Ошибка зачисления:", error.message);
-      return res.status(500).json({ error: "Ошибка зачисления баланса" });
-    }
-
-    return res.json({ confirmed: true });
-  } catch (err) {
-    console.error("Ошибка проверки перевода:", err);
-    return res.status(500).json({ error: "Проверка TON не удалась" });
-  }
-});
-*/
 
 // ✅ Проверка перевода TON и зачисление
 app.get("/api/verify-topup/:address/:amount", async (req, res) => {
@@ -112,27 +64,22 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     console.log("→ Сумма (nanoTON):", nanoAmount.toString());
 
     const found = txs.transactions.find(tx => {
-  const inMsg = tx.in_msg;
-  if (!inMsg || !inMsg.source || !inMsg.value) return false;
+      const inMsg = tx.in_msg;
+      if (!inMsg || !inMsg.source || !inMsg.value || !inMsg.source.address) return false;
 
-  try {
-    const txRaw = Address.parse(inMsg.source.address).toString();
-    const userRaw = Address.parse(address).toString();
-    console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
-
-    return (
-      txRaw === userRaw &&
-      BigInt(inMsg.value) >= nanoAmount
-    );
-  } catch (e) {
-    console.error("❌ Ошибка парсинга source:", e.message);
-    return false;
-  }
-});
+      try {
+        const txRaw = Address.parse(inMsg.source.address).toString();
+        console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
+        return txRaw === userRaw && BigInt(inMsg.value) >= nanoAmount;
+      } catch (e) {
+        console.error("❌ Ошибка парсинга source:", e.message);
+        return false;
+      }
+    });
 
     if (!found) {
       console.log("❌ Перевод не найден. txs:", txs.transactions.map(tx => ({
-        source: tx.in_msg?.source,
+        source: tx.in_msg?.source?.address,
         value: tx.in_msg?.value
       })));
       return res.json({ confirmed: false });
@@ -145,13 +92,14 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       add_amount: parseFloat(amount)
     });
 
-   if (error) {
-  console.error("❌ Ошибка зачисления:", error.message);
-  return res.status(500).json({ error: "Ошибка зачисления баланса" });
-} else {
-  console.log("✅ Баланс успешно увеличен");
-}
+    if (error) {
+      console.error("❌ Ошибка зачисления:", error.message);
+      return res.status(500).json({ error: "Ошибка зачисления баланса" });
+    }
+
+    console.log("✅ Баланс успешно увеличен");
     return res.json({ confirmed: true });
+
   } catch (err) {
     console.error("❌ Ошибка проверки перевода:", err);
     return res.status(500).json({ error: "Проверка TON не удалась" });
@@ -185,14 +133,14 @@ app.post("/api/spend", async (req, res) => {
     .eq("address", address);
 
   if (updateError) {
-    console.error("Ошибка при списании:", updateError.message);
+    console.error("❌ Ошибка при списании:", updateError.message);
     return res.status(500).json({ error: "Ошибка при списании." });
   }
 
   res.json({ success: true });
 });
 
-// ✅ Получение баланса по адресу
+// ✅ Получение баланса
 app.get("/api/balance/:address", async (req, res) => {
   const { address } = req.params;
 
@@ -211,7 +159,7 @@ app.get("/api/balance/:address", async (req, res) => {
         {
           address,
           balance: 0,
-          created_at: new Date().toISOString(), // добавим явно
+          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
       ])
@@ -235,10 +183,7 @@ app.get("/api/balance/:address", async (req, res) => {
 });
 
 // ▶️ Запуск сервера
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
-
-
-
