@@ -109,6 +109,39 @@ document.getElementById("topup").onclick = async () => {
   }
 };
 
+// ✅ Кнопка "Вывести"
+document.getElementById("withdraw-btn").addEventListener("click", async () => {
+  const rawAmount = prompt("Введите сумму TON для вывода:");
+  const amount = parseFloat(rawAmount);
+
+  if (isNaN(amount) || amount <= 0) {
+    alert("Введите корректную сумму.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/request-withdraw", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        address: wallet.account.address,
+        amount
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("✅ Заявка на вывод создана. Выплата будет выполнена в ближайшее время.");
+    } else {
+      alert("❌ Ошибка: " + (data.error || "Неизвестная ошибка"));
+    }
+  } catch (err) {
+    console.error("❌ Ошибка при выводе:", err);
+    alert("Ошибка при отправке заявки на вывод.");
+  }
+});
+
 // ✅ Проверка через сервер, был ли перевод
 async function verifyTopup(address, amount) {
   status.textContent = "⏳ Проверяем перевод...";
