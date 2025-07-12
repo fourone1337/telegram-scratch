@@ -17,10 +17,11 @@ const supabase = createClient(
 // ✅ Добавление победы + автоначисление награды
 app.post("/api/wins", async (req, res) => {
   const { address, emojis, reward, date } = req.body;
+  const userAddress = Address.parse(address).toFriendly();
 
   const result = await supabase
     .from("wins")
-    .insert([{ address, emojis, reward, date }]);
+    .insert([{ address: userAddress, emojis, reward, date }]);
 
   if (result.error) {
     console.error("❌ Ошибка записи в wins:", result.error.message);
@@ -28,7 +29,7 @@ app.post("/api/wins", async (req, res) => {
   }
 
   const { error: rewardError } = await supabase.rpc("increment_balance", {
-    user_address: Address.parseFriendly(address).address.toString(),
+    user_address: userAddress,
     add_amount: reward
   });
 
@@ -56,11 +57,11 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 
     const txs = await response.json();
     const nanoAmount = BigInt(Math.floor(parseFloat(amount) * 1e9));
-    const userRaw = Address.parse(address).toString();
+    const userAddress = Address.parse(address).toFriendly();
 
     console.log("🔍 Проверка перевода TON");
     console.log("→ Получатель:", RECEIVER_ADDRESS);
-    console.log("→ Ожидаемый отправитель:", userRaw);
+    console.log("→ Ожидаемый отправитель:", userAddress);
     console.log("→ Сумма (nanoTON):", nanoAmount.toString());
 
     const found = txs.transactions.find(tx => {
@@ -68,11 +69,11 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
       if (!inMsg || !inMsg.source || !inMsg.value || !inMsg.source.address) return false;
 
       try {
-        const txRaw = Address.parse(inMsg.source.address).toString();
-        console.log(`→ Сравнение: ${txRaw} === ${userRaw} ?`);
-        return txRaw === userRaw && BigInt(inMsg.value) >= nanoAmount;
+        const txSender = Address.parse(inMsg.source.address).toFriendly();
+        console.log(`→ Сравнение: ${txSender} === ${userAddress} ?`);
+        return txSender === userAddress && BigInt(inMsg.value) >= nanoAmount;
       } catch (e) {
-        console.error("❌ Ошибка парсинга source:", e.message);
+        console.error("❌ Ошибка парсинга:", e.message);
         return false;
       }
     });
@@ -88,7 +89,7 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
     console.log("✅ Перевод найден. Начисляем баланс...");
 
     const { error } = await supabase.rpc("increment_balance", {
-      user_address: userRaw,
+      user_address: userAddress,
       add_amount: parseFloat(amount)
     });
 
@@ -109,11 +110,12 @@ app.get("/api/verify-topup/:address/:amount", async (req, res) => {
 // ✅ Списание с баланса
 app.post("/api/spend", async (req, res) => {
   const { address, amount } = req.body;
+  const userAddress = Address.parse(address).toFriendly();
 
   const { data, error: selectError } = await supabase
     .from("users")
     .select("balance")
-    .eq("address", address)
+    .eq("address", userAddress)
     .single();
 
   if (selectError || !data) {
@@ -130,7 +132,7 @@ app.post("/api/spend", async (req, res) => {
       balance: data.balance - amount,
       updated_at: new Date().toISOString()
     })
-    .eq("address", address);
+    .eq("address", userAddress);
 
   if (updateError) {
     console.error("❌ Ошибка при списании:", updateError.message);
@@ -142,12 +144,13 @@ app.post("/api/spend", async (req, res) => {
 
 // ✅ Получение баланса
 app.get("/api/balance/:address", async (req, res) => {
-  const { address } = req.params;
+  const raw = req.params.address;
+  const userAddress = Address.parse(raw).toFriendly();
 
   let { data, error } = await supabase
     .from("users")
     .select("balance")
-    .eq("address", address)
+    .eq("address", userAddress)
     .single();
 
   if (error && error.code === 'PGRST116') {
@@ -157,7 +160,7 @@ app.get("/api/balance/:address", async (req, res) => {
       .from("users")
       .insert([
         {
-          address,
+          address: userAddress,
           balance: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -183,7 +186,9 @@ app.get("/api/balance/:address", async (req, res) => {
 });
 
 // ▶️ Запуск сервера
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`✅ Сервер запущен на порту ${PORT}`);
 });
+
+
