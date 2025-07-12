@@ -6,12 +6,12 @@ const SERVER_URL = "https://telegram-scratch.onrender.com";
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 const emojiRewards = {
-  "🍒": 1,
-  "⭐️": 1,
-  "🍋": 1,
-  "🔔": 1,
-  "7️⃣": 1,
-  "💎": 5
+  "🍒": 0.1,
+  "⭐️": 0.1,
+  "🍋": 0.1,
+  "🔔": 0.1,
+  "7️⃣": 0.1,
+  "💎": 0.1
 };
 
 let currentWalletAddress = null;
@@ -57,7 +57,7 @@ buyBtn.onclick = async () => {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
 
-    await spendBalance(currentWalletAddress, 1);
+    await spendBalance(currentWalletAddress, 0.05); //, была 1!!!!!
     currentTicket = generateTicket();
     openedIndices = [];
     status.textContent = "Выберите 3 ячейки, чтобы открыть";
@@ -110,7 +110,6 @@ document.getElementById("topup").onclick = async () => {
 };
 
 // ✅ Кнопка "Вывести"
-// ✅ Кнопка "Вывести"
 document.getElementById("withdraw").addEventListener("click", async () => {
   try {
     const wallet = await tonConnectUI.wallet;
@@ -144,9 +143,6 @@ document.getElementById("withdraw").addEventListener("click", async () => {
     alert("❌ Ошибка при выводе: " + e.message);
   }
 });
-
-
-
 
 // ✅ Проверка через сервер, был ли перевод
 async function verifyTopup(address, amount) {
