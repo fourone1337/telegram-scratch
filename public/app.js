@@ -2,7 +2,7 @@
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
-const SERVER_URL = "http://147.45.249.183:3000/api/buy-ticket";
+const SERVER_URL = "http://147.45.249.183:3000";
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 const emojiRewards = {
