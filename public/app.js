@@ -20,26 +20,28 @@ const history = [];
 
 // ✅ Инициализация TonConnect
 const tonConnectUI = new TonConnectUI({
-  manifestUrl: "https://scratch-lottery.ru/tonconnect-manifest.json",
+  manifestUrl: "https://telegram-scratch-two.vercel.app/tonconnect-manifest.json",
   buttonRootId: "ton-connect"
 });
 
-let currentWalletAddress = null;
+var currentWalletAddress = null;
 
-async function updateBalance() {
+function updateBalance() {
   if (!currentWalletAddress) return;
 
-  try {
-    const res = await fetch("https://scratch-lottery.ru/api/balance/" + currentWalletAddress);
-    const data = await res.json();
-
-    var balanceElement = document.getElementById("balance-text");
-    if (balanceElement && data && typeof data.balance !== "undefined") {
-      balanceElement.textContent = data.balance + " TON";
-    }
-  } catch (err) {
-    console.error("❌ Не удалось загрузить баланс:", err);
-  }
+  fetch("https://scratch-lottery.ru/api/balance/" + currentWalletAddress)
+    .then(function (res) {
+      return res.json();
+    })
+    .then(function (data) {
+      var balanceElement = document.getElementById("balance-text");
+      if (balanceElement && data && typeof data.balance !== "undefined") {
+        balanceElement.textContent = data.balance + " TON";
+      }
+    })
+    .catch(function (err) {
+      console.error("❌ Не удалось загрузить баланс:", err);
+    });
 }
 
 tonConnectUI.onStatusChange(function (wallet) {
@@ -52,6 +54,7 @@ tonConnectUI.onStatusChange(function (wallet) {
     updateBalance();
   }
 });
+
 
 
 // ✅ Кнопка "Купить билет"
