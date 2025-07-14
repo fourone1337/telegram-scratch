@@ -31,6 +31,7 @@ tonConnectUI.onStatusChange(wallet => {
     : "🔴 Кошелёк не подключён.";
 
   currentWalletAddress = fullAddress || null;
+  walletDisplay.textContent = fullAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
@@ -43,6 +44,7 @@ tonConnectUI.onStatusChange(wallet => {
 
   if (fullAddress) fetchBalance(fullAddress);
 });
+
 
 // ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
