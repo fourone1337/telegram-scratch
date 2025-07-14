@@ -23,9 +23,6 @@ const history = [];
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
   buttonRootId: 'ton-connect'
-  uiPreferences: {
-    modalsPosition: 'top' // 👈 вот ключ!
-  }
 });
 
 tonConnectUI.onStatusChange(wallet => {
