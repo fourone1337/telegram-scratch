@@ -145,3 +145,71 @@ html, body {
   overflow: hidden;
   height: 100%;
 }
+
+/*------------------------------------------------модальное окно-----------------------------*/
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: #007bff;
+}
+
+#terms-text {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+#accept-terms {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#accept-terms:hover {
+  background-color: #0056b3;
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.buy-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 20px;
+}
