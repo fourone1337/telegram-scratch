@@ -26,9 +26,7 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  const fullAddress = wallet?.account?.address;
-const walletBase64 = wallet?.account?.address.toString({ bounceable: true, testOnly: false });
-
+  const fullAddress = wallet?.account?.address || "";
   const shortAddress = fullAddress
     ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
@@ -46,9 +44,10 @@ const walletBase64 = wallet?.account?.address.toString({ bounceable: true, testO
     : "Подключите кошелёк для начала игры.";
 
   if (fullAddress) {
-  const formatted = fullAddress.toString(); // тут желательно конвертировать в base64, если есть API
-  fetchBalance(formatted);
+  const base64 = wallet.account.address.toString(); // уже должен быть в base64
+  fetchBalance(base64);
 }
+
 });
 
 // ✅ Кнопка "Купить билет"
