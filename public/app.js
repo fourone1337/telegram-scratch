@@ -44,6 +44,9 @@ tonConnectUI.onStatusChange(wallet => {
     : "Подключите кошелёк для начала игры.";
 
   if (fullAddress) {
+    
+    console.log("🧪 Address from TonConnect:", wallet?.account?.address); // должен быть EQ...
+
     fetchBalance(fullAddress); // ✅ вот так
   }
 });
