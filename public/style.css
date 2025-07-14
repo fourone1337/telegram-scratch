@@ -142,25 +142,6 @@ button:disabled {
 }
 
 html, body {
+  overflow: hidden;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  scroll-padding-bottom: 80px;
-}
-
-#ton-connect {
-  position: relative;
-  z-index: 9999;
-}
-
-/* Ограничение высоты для модальных окон TonConnect */
-body > ton-connect-ui-root,
-body > .TonConnectModal__container {
-  position: fixed !important;
-  bottom: 0;
-  top: auto;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 9999 !important;
 }
