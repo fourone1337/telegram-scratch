@@ -43,7 +43,10 @@ tonConnectUI.onStatusChange(wallet => {
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (fullAddress) fetchBalance(fullAddress);
+  if (fullAddress) {
+  const formatted = fullAddress.toString(); // тут желательно конвертировать в base64, если есть API
+  fetchBalance(formatted);
+}
 });
 
 // ✅ Кнопка "Купить билет"
