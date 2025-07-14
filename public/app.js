@@ -19,30 +19,40 @@ let openedIndices = [];
 const history = [];
 
 // ✅ Инициализация TonConnect
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
-  buttonRootId: 'ton-connect'
+const tonConnectUI = new TonConnectUI({
+  manifestUrl: "https://scratch-lottery.ru/tonconnect-manifest.json",
+  buttonRootId: "ton-connect"
 });
 
-tonConnectUI.onStatusChange(wallet => {
-  const fullAddress = (wallet && wallet.account && wallet.account.address) || "";
-  const shortAddress = fullAddress
-    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
-    : "🔴 Кошелёк не подключён.";
+let currentWalletAddress = null;
 
-  currentWalletAddress = fullAddress || null;
-    ? `🟢 Кошелёк: ${shortAddress}`
-    : shortAddress;
+async function updateBalance() {
+  if (!currentWalletAddress) return;
 
-  buyBtn.disabled = !fullAddress;
-  document.getElementById("topup").disabled = !fullAddress;
+  try {
+    const res = await fetch("https://scratch-lottery.ru/api/balance/" + currentWalletAddress);
+    const data = await res.json();
 
-  status.textContent = fullAddress
-    ? "Нажмите «Купить билет», чтобы начать игру!"
-    : "Подключите кошелёк для начала игры.";
+    var balanceElement = document.getElementById("balance-text");
+    if (balanceElement && data && typeof data.balance !== "undefined") {
+      balanceElement.textContent = data.balance + " TON";
+    }
+  } catch (err) {
+    console.error("❌ Не удалось загрузить баланс:", err);
+  }
+}
 
-  if (fullAddress) fetchBalance(fullAddress);
+tonConnectUI.onStatusChange(function (wallet) {
+  if (
+    wallet &&
+    wallet.account &&
+    wallet.account.address
+  ) {
+    currentWalletAddress = wallet.account.address;
+    updateBalance();
+  }
 });
+
 
 // ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
