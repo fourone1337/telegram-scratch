@@ -1,0 +1,74 @@
+body {
+  font-family: sans-serif;
+  background: #f8f9fa;
+  text-align: center;
+  padding: 40px 20px;
+  margin: 0;
+}
+
+button {
+  display: block;
+  margin: 15px auto;
+  padding: 12px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#status {
+  margin-top: 25px;
+  font-size: 16px;
+  color: #444;
+}
+
+#ticket-container div {
+  width: 60px;
+  height: 60px;
+  background-color: #888;
+  border-radius: 8px;
+  font-size: 36px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ton-connect {
+  display: flex;
+  justify-content: center;
+  margin: 10px auto;
+}
+
+/*Пополнение кошелька*/
+
+.topup-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 20px auto;
+  max-width: 320px;
+}
+
+.topup-wrapper input[type="number"] {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.topup-wrapper input[type="number"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+}
