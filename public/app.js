@@ -1,7 +1,6 @@
 // ✅ app.js — очищенный и актуализированный
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
-const walletDisplay = document.getElementById("wallet-address");
 const SERVER_URL = "http://scratch-lottery.ru";
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
@@ -32,7 +31,6 @@ tonConnectUI.onStatusChange(wallet => {
     : "🔴 Кошелёк не подключён.";
 
   currentWalletAddress = fullAddress || null;
-  walletDisplay.textContent = fullAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
