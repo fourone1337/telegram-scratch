@@ -63,6 +63,9 @@ button:disabled {
   padding: 4px;
   cursor: pointer;
   transition: transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .icon-button svg {
@@ -71,7 +74,8 @@ button:disabled {
 }
 
 .icon-button:disabled svg {
-  stroke: #ccc;
+  stroke: #007bff;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -146,8 +150,7 @@ html, body {
   height: 100%;
 }
 
-/*------------------------------------------------модальное окно-----------------------------*/
-
+/* Модальное окно */
 .modal {
   display: none;
   position: fixed;
@@ -210,6 +213,51 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 10px;
   margin-top: 20px;
+}
+
+/* flat-button (Купить билет в стиле "Условия участия", с заливкой при активации) */
+.flat-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+  border: none;
+  border-radius: 14px;
+  background: none;
+  color: #007bff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flat-button svg {
+  stroke: #007bff;
+  transition: stroke 0.2s ease;
+}
+
+.flat-button:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.flat-button:not(:disabled) {
+  background-color: #007bff;
+  color: white;
+}
+
+.flat-button:not(:disabled) svg {
+  stroke: white;
+}
+
+.flat-button:disabled {
+  background: none !important;
+  color: #007bff;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.flat-button:disabled svg {
+  stroke: #007bff;
+  opacity: 0.5;
 }
