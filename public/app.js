@@ -26,7 +26,9 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  const fullAddress = wallet?.account?.address || "";
+  const fullAddress = wallet?.account?.address;
+const walletBase64 = wallet?.account?.address.toString({ bounceable: true, testOnly: false });
+
   const shortAddress = fullAddress
     ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
