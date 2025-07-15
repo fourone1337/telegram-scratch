@@ -64,9 +64,11 @@ tonConnectUI.onStatusChange(wallet => {
     : "🔴 Кошелёк не подключён.";
 
   currentWalletAddress = friendlyAddress || null;
-  walletDisplay.textContent = friendlyAddress
-    ? `🟢 Кошелёк: ${shortAddress}`
-    : shortAddress;
+  + if (walletDisplay) {
++   walletDisplay.textContent = friendlyAddress
++     ? `🟢 Кошелёк: ${shortAddress}`
++     : shortAddress;
++ }
 
   // ✅ управляем кнопками
   const isEnabled = !!friendlyAddress;
