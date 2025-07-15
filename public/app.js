@@ -284,7 +284,7 @@ function renderHistory() {
   historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
 }
 
-async function sendWinToServer(address, emojis, reward) {
+/*async function sendWinToServer(address, emojis, reward) {
   try {
     await fetch(`${SERVER_URL}/api/wins`, {
       method: 'POST',
@@ -331,3 +331,4 @@ function renderWinners(data) {
 }
 
 fetchWinners();
+*/
