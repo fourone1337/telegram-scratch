@@ -318,7 +318,7 @@ html, body {
   border-color: #28a745; /* зелёный бордюр для выигрыша */
   background: linear-gradient(145deg, #e8f5e9, #c8e6c9); /* мягкий зелёный фон */
   color: #1b5e20;
-  animation: openFlip 0.4s ease-out;
+  animation: openFlip 1.4s ease-out;
   transform-origin: center;
 }
 
