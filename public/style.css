@@ -1,21 +1,35 @@
 body {
-  font-family: sans-serif;
-  background: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #e0f7fa, #ffffff);
   text-align: center;
   padding: 40px 20px;
   margin: 0;
+  color: #333;
+}
+
+h1 {
+  font-size: 32px;
+  color: #007bff;
+  margin-bottom: 20px;
 }
 
 button {
   display: block;
   margin: 15px auto;
-  padding: 12px 24px;
+  padding: 14px 28px;
   font-size: 18px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   background-color: #007bff;
   color: white;
   cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
 button:disabled {
@@ -23,52 +37,179 @@ button:disabled {
   cursor: not-allowed;
 }
 
-#status {
-  margin-top: 25px;
-  font-size: 16px;
-  color: #444;
-}
-
-#ticket-container div {
-  width: 60px;
-  height: 60px;
-  background-color: #888;
-  border-radius: 8px;
-  font-size: 36px;
-  color: white;
+/* Общая строка с балансом, TonConnect и кнопками */
+.wallet-bar {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
+  margin: 20px auto;
 }
 
+/* Баланс и иконка TON */
+.balance-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 18px;
+  color: #333;
+  line-height: 1;
+}
+
+/* Иконки-кнопки (пополнение / вывод) */
+.icon-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.icon-button svg {
+  display: block;
+  vertical-align: middle;
+}
+
+.icon-button:disabled svg {
+  stroke: #ccc;
+  cursor: not-allowed;
+}
+
+.icon-button:hover:not(:disabled) {
+  transform: scale(1.2);
+}
+
+/* Контейнер TON-кнопки */
 #ton-connect {
   display: flex;
   justify-content: center;
-  margin: 10px auto;
 }
 
-/*Пополнение кошелька*/
-
-.topup-wrapper {
-  display: flex;
+/* Игровая сетка */
+#ticket-container {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  grid-gap: 12px;
   justify-content: center;
+  margin: 30px auto;
+}
+
+#ticket-container div {
+  width: 80px;
+  height: 80px;
+  background-color: #ffffff;
+  border: 2px solid #007bff;
+  border-radius: 12px;
+  font-size: 40px;
+  color: #007bff;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 20px auto;
-  max-width: 320px;
+  justify-content: center;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  user-select: none;
 }
 
-.topup-wrapper input[type="number"] {
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
+#ticket-container div:hover {
+  background-color: #e3f2fd;
+}
+
+/* История и победители */
+#winners,
+#history {
+  margin-top: 40px;
+  text-align: left;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 14px;
+  background: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Иконка TON */
+.ton-logo {
+  flex-shrink: 0;
+}
+
+.page-banner {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 0px;
+  border-radius: 12px;
+  box-shadow: 0 0px 0px rgba(0,0,0,0.00);
+}
+
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
+/*------------------------------------------------модальное окно-----------------------------*/
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px 30px;
   border-radius: 10px;
-  border: 1px solid #ccc;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-.topup-wrapper input[type="number"]:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+.modal-content h2 {
+  margin-top: 0;
+  color: #007bff;
+}
+
+#terms-text {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+#accept-terms {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#accept-terms:hover {
+  background-color: #0056b3;
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.buy-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 20px;
 }
