@@ -19,6 +19,12 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
+// ✅ Инициализация TonConnect
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
+  buttonRootId: 'ton-connect'
+});
+
 tonConnectUI.onStatusChange(wallet => {
   console.log("🔧 wallet.account.address:", wallet?.account?.address);
 
@@ -55,6 +61,7 @@ tonConnectUI.onStatusChange(wallet => {
     fetchBalance(rawAddress); // передаём raw
   }
 });
+
 
 
 // ✅ Кнопка "Купить билет"
