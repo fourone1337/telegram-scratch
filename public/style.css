@@ -336,3 +336,14 @@ html, body {
     transform: rotateY(0deg) scale(1);
   }
 }
+
+
+/* Подсветка выбранной ячейки */
+#ticket-container div.selected {
+  border-color: #42a5f5;            /* голубой бордер */
+  background: rgba(66,165,245,0.15); /* лёгкая голубая подсветка */
+  box-shadow: 0 0 10px rgba(66,165,245,0.5);
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+

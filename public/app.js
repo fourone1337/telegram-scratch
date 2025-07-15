@@ -252,13 +252,17 @@ function renderTicket(ticket) {
     cell.style.userSelect = "none";
     cell.textContent = openedIndices.includes(idx) ? emoji : "❓";
 
-   cell.onclick = () => {
+  cell.onclick = () => {
   if (openedIndices.length >= 3 || openedIndices.includes(idx)) return;
+
+  // ✅ Подсветка выбранной ячейки
+  cell.classList.add("selected");
+
   openedIndices.push(idx);
   cell.textContent = emoji;
-  cell.classList.add("opened"); // ✅ добавляем класс для анимации
+  cell.classList.add("opened"); // если нужно сразу же открывать эмодзи
   if (openedIndices.length === 3) checkWin(ticket);
-};
+}
 
     container.appendChild(cell);
   });
