@@ -26,6 +26,8 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
+  console.log("🧪 wallet.account.address (из TonConnect):", wallet?.account?.address);
+  console.log("🧪 Тип данных:", typeof wallet?.account?.address);
   const fullAddress = wallet?.account?.address || "";
   const shortAddress = fullAddress
     ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
@@ -47,7 +49,8 @@ tonConnectUI.onStatusChange(wallet => {
     
     console.log("🧪 Address from TonConnect:", wallet?.account?.address); // должен быть EQ...
 
-    fetchBalance(fullAddress); // ✅ вот так
+    fetchBalance(wallet.account.address); // он уже friendly, вида EQ...
+
   }
 });
 
