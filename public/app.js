@@ -1,22 +1,23 @@
+// ✅ app.js — очищенный и актуализированный
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
 const SERVER_URL = "https://scratch-lottery.ru";
 
+const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
+const emojiRewards = {
+  "🍒": 0.1,
+  "⭐️": 0.1,
+  "🍋": 0.1,
+  "🔔": 0.1,
+  "7️⃣": 0.1,
+  "💎": 0.1
+};
+
 let currentWalletAddress = null;
 let currentTicket = null;
 let openedIndices = [];
 const history = [];
-
-// 🔧 Конвертация raw → friendly
-function toFriendly(addrRaw) {
-  try {
-    return toncore.Address.parseRaw(addrRaw).toString({ bounceable: true });
-  } catch (e) {
-    console.error("Ошибка конвертации адреса:", e);
-    return addrRaw;
-  }
-}
 
 // ✅ Инициализация TonConnect
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -25,69 +26,86 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  const rawAddress = wallet?.account?.address || "";
-  currentWalletAddress = rawAddress || null;
+  let rawAddress = wallet?.account?.address || "";
+  let friendlyAddress = null;
 
-  const friendly = rawAddress ? toFriendly(rawAddress) : "";
-  const shortAddress = friendly
-    ? `${friendly.slice(0, 4)}...${friendly.slice(-3)}`
+  if (rawAddress) {
+    try {
+      // ✅ конвертация raw → friendly
+      friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(true, false, true);
+    } catch (e) {
+      console.error("❌ Ошибка конвертации адреса:", e);
+    }
+  }
+
+  const shortAddress = friendlyAddress
+    ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  walletDisplay.textContent = friendly
+  // ✅ сохраняем уже friendly адрес
+  currentWalletAddress = friendlyAddress || null;
+  walletDisplay.textContent = friendlyAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !friendly;
-  document.getElementById("topup").disabled = !friendly;
+  buyBtn.disabled = !friendlyAddress;
+  document.getElementById("topup").disabled = !friendlyAddress;
 
-  status.textContent = friendly
+  status.textContent = friendlyAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (friendly) {
-    console.log("🧪 Friendly для сервера:", friendly);
-    fetchBalance(friendly);
+  if (friendlyAddress) {
+    console.log("🧪 Friendly address from TonConnect:", friendlyAddress);
+    fetchBalance(friendlyAddress); // ✅ теперь friendly адрес
   }
 });
 
-// ✅ Купить билет
+
+// ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
   if (!currentWalletAddress) {
-    alert("Подключите кошелёк.");
+    alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
     return;
   }
+
   try {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
-    await spendBalance(toFriendly(currentWalletAddress), 0.05);
+
+    await spendBalance(currentWalletAddress, 0.05); //, была 1!!!!!
     currentTicket = generateTicket();
     openedIndices = [];
-    status.textContent = "Выберите 3 ячейки";
+    status.textContent = "Выберите 3 ячейки, чтобы открыть";
     renderTicket(currentTicket);
-    await fetchBalance(toFriendly(currentWalletAddress));
+    await fetchBalance(currentWalletAddress);
   } catch (err) {
     console.error("Ошибка покупки:", err);
     alert(`Ошибка: ${err.message}`);
-    status.textContent = "❌ Покупка не удалась.";
+    status.textContent = "❌ Покупка не удалась. Попробуйте позже.";
   } finally {
     buyBtn.disabled = false;
   }
 };
 
-// ✅ Пополнить
+// ✅ Кнопка "Пополнить"
 document.getElementById("topup").onclick = async () => {
   if (!currentWalletAddress) {
-    alert("Подключите кошелёк.");
+    alert("Сначала подключите TON-кошелёк");
     return;
   }
-  const input = prompt("Введите сумму TON:");
+
+  const input = prompt("Введите сумму TON для пополнения:");
   const amount = parseFloat(input);
+
   if (isNaN(amount) || amount <= 0) {
     alert("Некорректная сумма");
     return;
   }
+
   try {
-    status.textContent = "⏳ Ожидаем подтверждение...";
+    status.textContent = "⏳ Ожидаем подтверждение транзакции...";
+
     await tonConnectUI.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 300,
       messages: [
@@ -97,51 +115,62 @@ document.getElementById("topup").onclick = async () => {
         }
       ]
     });
-    await verifyTopup(toFriendly(currentWalletAddress), amount);
+
+    // 👇 Проверим перевод и начислим виртуально
+    await verifyTopup(currentWalletAddress, amount);
   } catch (err) {
-    console.error("Ошибка при пополнении:", err);
-    status.textContent = "❌ Пополнение не удалось";
+    console.error("❌ Ошибка при пополнении:", err);
+    status.textContent = "❌ Пополнение отменено или не удалось";
+    alert(err.message);
   }
 };
 
-// ✅ Вывести
-document.getElementById("withdraw").onclick = async () => {
+// ✅ Кнопка "Вывести"
+document.getElementById("withdraw").addEventListener("click", async () => {
   try {
     const wallet = await tonConnectUI.wallet;
     if (!wallet || !wallet.account || !wallet.account.address) {
-      return alert("❌ Кошелёк не подключён");
+      return alert("❌ Кошелек не подключен");
     }
-    const friendly = toFriendly(wallet.account.address);
-    const input = prompt("Введите сумму для вывода:");
+
+    const address = wallet.account.address;
+    const input = prompt("Введите сумму для вывода в TON");
     const amount = parseFloat(input);
+
     if (isNaN(amount) || amount <= 0) {
-      alert("Некорректная сумма");
+      alert("❌ Некорректная сумма");
       return;
     }
-    const res = await fetch(`${SERVER_URL}/api/request-withdraw`, {
+
+    const response = await fetch(`${SERVER_URL}/api/request-withdraw`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address: friendly, amount })
+      body: JSON.stringify({ address, amount })
     });
-    const data = await res.json();
-    if (data.success) alert("✅ Заявка принята");
-    else alert("❌ Ошибка: " + data.error);
-  } catch (e) {
-    console.error("Ошибка при выводе:", e);
-  }
-};
 
-// ✅ Серверные запросы
-async function fetchBalance(address) {
-  try {
-    const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Ошибка");
-    document.getElementById("balance-display").textContent =
-      `💰 Баланс: ${data.balance.toFixed(2)} TON`;
-  } catch (err) {
-    console.error("Ошибка загрузки баланса:", err);
-    document.getElementById("balance-display").textContent = "💰 Баланс: ошибка";
+    const data = await response.json();
+    if (data.success) {
+      alert("✅ Заявка на вывод принята");
+    } else {
+      alert("❌ Ошибка при выводе: " + data.error);
+    }
+  } catch (e) {
+    console.error("❌ Ошибка при выводе:", e);
+    alert("❌ Ошибка при выводе: " + e.message);
+  }
+});
+
+// ✅ Проверка через сервер, был ли перевод
+async function verifyTopup(address, amount) {
+  status.textContent = "⏳ Проверяем перевод...";
+  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
+  const data = await res.json();
+
+  if (data.confirmed) {
+    await fetchBalance(address);
+    status.textContent = `✅ Пополнение ${amount} TON успешно`;
+  } else {
+    status.textContent = "❌ Перевод не найден. Попробуйте позже.";
   }
 }
 
@@ -151,25 +180,23 @@ async function spendBalance(address, amount) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ address, amount })
   });
+
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Ошибка");
+  if (!res.ok) throw new Error(data.error || "Ошибка списания");
   return data;
 }
 
-async function verifyTopup(address, amount) {
-  status.textContent = "⏳ Проверяем перевод...";
-  const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
-  const data = await res.json();
-  if (data.confirmed) {
-    await fetchBalance(address);
-    status.textContent = `✅ Пополнение ${amount} TON`;
-  } else {
-    status.textContent = "❌ Перевод не найден.";
+async function fetchBalance(address) {
+  try {
+    const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Ошибка запроса");
+    document.getElementById("balance-display").textContent = `💰 Баланс: ${data.balance.toFixed(2)} TON`;
+  } catch (err) {
+    console.error("Ошибка загрузки баланса:", err);
+    document.getElementById("balance-display").textContent = "💰 Баланс: ошибка";
   }
 }
-
-// 🎟 Остальные функции (generateTicket, renderTicket, renderHistory) остаются без изменений
-
 
 function generateTicket() {
   return Array.from({ length: 6 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
