@@ -1,6 +1,5 @@
 // ✅ app.js — очищенный и актуализированный
 
-import { Address } from "@ton/core";
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
@@ -28,21 +27,17 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  
-  // Берём адрес из TonConnect
   const rawAddress = wallet?.account?.address || "";
 
-  // Преобразуем в friendly (EQ...) если есть
+  // Используем toncore из CDN
   const fullAddress = rawAddress
-    ? Address.parseRaw(rawAddress).toString({ bounceable: true })
+    ? toncore.Address.parseRaw(rawAddress).toString({ bounceable: true })
     : "";
 
-  // Короткий адрес для отображения
   const shortAddress = fullAddress
     ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  // Сохраняем и обновляем интерфейс
   currentWalletAddress = fullAddress || null;
   walletDisplay.textContent = fullAddress
     ? `🟢 Кошелёк: ${shortAddress}`
@@ -56,8 +51,8 @@ tonConnectUI.onStatusChange(wallet => {
     : "Подключите кошелёк для начала игры.";
 
   if (fullAddress) {
-    console.log("🧪 Friendly address from TonConnect:", fullAddress); // теперь EQ...
-    fetchBalance(fullAddress); // ✅ передаём friendly на сервер
+    console.log("🧪 Friendly address from TonConnect:", fullAddress);
+    fetchBalance(fullAddress);
   }
 });
 
