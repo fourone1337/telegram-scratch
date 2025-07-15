@@ -32,7 +32,7 @@ tonConnectUI.onStatusChange(wallet => {
   if (rawAddress) {
     try {
       // ✅ конвертация raw → friendly
-      friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(true, false, true);
+      friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, true);
     } catch (e) {
       console.error("❌ Ошибка конвертации адреса:", e);
     }
