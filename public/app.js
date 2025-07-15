@@ -6,12 +6,12 @@ const SERVER_URL = "https://scratch-lottery.ru";
 
 const emojis = ["🍒", "⭐️", "🍋", "🔔", "7️⃣", "💎"];
 const emojiRewards = {
-  "🍒": 0.1,
-  "⭐️": 0.1,
-  "🍋": 0.1,
+  "🍒": 0.15,
+  "⭐️": 0.25,
+  "🍋": 0.15,
   "🔔": 0.1,
   "7️⃣": 0.1,
-  "💎": 0.1
+  "💎": 0.4
 };
 
 let currentWalletAddress = null;
@@ -93,7 +93,7 @@ buyBtn.onclick = async () => {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
 
-    await spendBalance(currentWalletAddress, 0.05);
+    await spendBalance(currentWalletAddress, 0.025);
     currentTicket = generateTicket();
     openedIndices = [];
     status.textContent = "Выберите 3 ячейки, чтобы открыть";
