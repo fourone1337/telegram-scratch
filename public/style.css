@@ -222,7 +222,7 @@ html, body {
   justify-content: center;
   margin: 30px auto;
   padding: 20px;
-  background: linear-gradient(135deg, #fff8e1, #ffffff);
+  background: linear-gradient(135deg, #ffe082 , #ffffff);
   border-radius: 20px;
   box-shadow: 0 0 15px rgba(0,0,0,0.08);
 }
