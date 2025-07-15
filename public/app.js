@@ -26,6 +26,8 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
+  console.log("🔧 wallet.account.address:", wallet?.account?.address);
+
   let rawAddress = wallet?.account?.address || "";
   let friendlyAddress = null;
 
