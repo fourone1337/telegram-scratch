@@ -33,12 +33,10 @@ tonConnectUI.onStatusChange(wallet => {
 
   if (rawAddress) {
     try {
-      // ✅ конвертация raw → friendly
-      const addr = toncore.Address.parse(rawAddress);
-friendlyAddress = addr.toString({ bounceable: false, urlSafe: true });
-    } catch (e) {
-      console.error("❌ Ошибка конвертации адреса:", e);
-    }
+  friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, true);
+} catch (e) {
+  console.error("❌ Ошибка конвертации адреса:", e);
+}
   }
 
   const shortAddress = friendlyAddress
