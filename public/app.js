@@ -1,5 +1,4 @@
-// ✅ app.js — очищенный и актуализированный
-
+// ✅ app.js — с конвертацией при отправке
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
@@ -20,6 +19,16 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
+// 🔧 Функция конвертации raw → friendly
+function toFriendly(addrRaw) {
+  try {
+    return toncore.Address.parseRaw(addrRaw).toString({ bounceable: true });
+  } catch (e) {
+    console.error("Ошибка конвертации адреса:", e);
+    return addrRaw;
+  }
+}
+
 // ✅ Инициализация TonConnect
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
@@ -28,31 +37,29 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 
 tonConnectUI.onStatusChange(wallet => {
   const rawAddress = wallet?.account?.address || "";
+  currentWalletAddress = rawAddress || null;
 
-  // Используем toncore из CDN
-  const fullAddress = rawAddress
-    ? toncore.Address.parseRaw(rawAddress).toString({ bounceable: true })
+  const displayAddress = rawAddress
+    ? toFriendly(rawAddress)
     : "";
-
-  const shortAddress = fullAddress
-    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
+  const shortAddress = displayAddress
+    ? `${displayAddress.slice(0, 4)}...${displayAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  currentWalletAddress = fullAddress || null;
-  walletDisplay.textContent = fullAddress
+  walletDisplay.textContent = displayAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !fullAddress;
-  document.getElementById("topup").disabled = !fullAddress;
+  buyBtn.disabled = !displayAddress;
+  document.getElementById("topup").disabled = !displayAddress;
 
-  status.textContent = fullAddress
+  status.textContent = displayAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (fullAddress) {
-    console.log("🧪 Friendly address from TonConnect:", fullAddress);
-    fetchBalance(fullAddress);
+  if (displayAddress) {
+    console.log("🧪 Friendly для сервера:", displayAddress);
+    fetchBalance(displayAddress);
   }
 });
 
@@ -62,17 +69,15 @@ buyBtn.onclick = async () => {
     alert("Пожалуйста, подключите TON-кошелёк перед покупкой билета.");
     return;
   }
-
   try {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
-
-    await spendBalance(currentWalletAddress, 0.05); //, была 1!!!!!
+    await spendBalance(toFriendly(currentWalletAddress), 0.05);
     currentTicket = generateTicket();
     openedIndices = [];
     status.textContent = "Выберите 3 ячейки, чтобы открыть";
     renderTicket(currentTicket);
-    await fetchBalance(currentWalletAddress);
+    await fetchBalance(toFriendly(currentWalletAddress));
   } catch (err) {
     console.error("Ошибка покупки:", err);
     alert(`Ошибка: ${err.message}`);
@@ -88,18 +93,14 @@ document.getElementById("topup").onclick = async () => {
     alert("Сначала подключите TON-кошелёк");
     return;
   }
-
   const input = prompt("Введите сумму TON для пополнения:");
   const amount = parseFloat(input);
-
   if (isNaN(amount) || amount <= 0) {
     alert("Некорректная сумма");
     return;
   }
-
   try {
     status.textContent = "⏳ Ожидаем подтверждение транзакции...";
-
     await tonConnectUI.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 300,
       messages: [
@@ -109,9 +110,7 @@ document.getElementById("topup").onclick = async () => {
         }
       ]
     });
-
-    // 👇 Проверим перевод и начислим виртуально
-    await verifyTopup(currentWalletAddress, amount);
+    await verifyTopup(toFriendly(currentWalletAddress), amount);
   } catch (err) {
     console.error("❌ Ошибка при пополнении:", err);
     status.textContent = "❌ Пополнение отменено или не удалось";
@@ -126,22 +125,18 @@ document.getElementById("withdraw").addEventListener("click", async () => {
     if (!wallet || !wallet.account || !wallet.account.address) {
       return alert("❌ Кошелек не подключен");
     }
-
-    const address = wallet.account.address;
+    const friendly = toFriendly(wallet.account.address);
     const input = prompt("Введите сумму для вывода в TON");
     const amount = parseFloat(input);
-
     if (isNaN(amount) || amount <= 0) {
       alert("❌ Некорректная сумма");
       return;
     }
-
     const response = await fetch(`${SERVER_URL}/api/request-withdraw`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address, amount })
+      body: JSON.stringify({ address: friendly, amount })
     });
-
     const data = await response.json();
     if (data.success) {
       alert("✅ Заявка на вывод принята");
@@ -154,12 +149,10 @@ document.getElementById("withdraw").addEventListener("click", async () => {
   }
 });
 
-// ✅ Проверка через сервер, был ли перевод
 async function verifyTopup(address, amount) {
   status.textContent = "⏳ Проверяем перевод...";
   const res = await fetch(`${SERVER_URL}/api/verify-topup/${address}/${amount}`);
   const data = await res.json();
-
   if (data.confirmed) {
     await fetchBalance(address);
     status.textContent = `✅ Пополнение ${amount} TON успешно`;
@@ -174,7 +167,6 @@ async function spendBalance(address, amount) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ address, amount })
   });
-
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Ошибка списания");
   return data;
