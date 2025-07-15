@@ -26,30 +26,42 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  const fullAddress = wallet?.account?.address || "";
-  const shortAddress = fullAddress
-    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
+  console.log("🔧 wallet.account.address:", wallet?.account?.address);
+
+  let rawAddress = wallet?.account?.address || "";
+  let friendlyAddress = null;
+
+  if (rawAddress) {
+    try {
+  friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, true);
+} catch (e) {
+  console.error("❌ Ошибка конвертации адреса:", e);
+}
+  }
+
+  const shortAddress = friendlyAddress
+    ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  currentWalletAddress = fullAddress || null;
-  walletDisplay.textContent = fullAddress
+  // ✅ сохраняем уже friendly адрес
+  currentWalletAddress = friendlyAddress || null;
+  walletDisplay.textContent = friendlyAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !fullAddress;
-  document.getElementById("topup").disabled = !fullAddress;
+  buyBtn.disabled = !friendlyAddress;
+  document.getElementById("topup").disabled = !friendlyAddress;
 
-  status.textContent = fullAddress
+  status.textContent = friendlyAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (fullAddress) {
-    
-    console.log("🧪 Address from TonConnect:", wallet?.account?.address); // должен быть EQ...
-
-    fetchBalance(fullAddress); // ✅ вот так
+  if (friendlyAddress) {
+    console.log("🧪 Friendly address from TonConnect:", friendlyAddress);
+    fetchBalance(friendlyAddress); // ✅ теперь friendly адрес
   }
 });
+
 
 // ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
@@ -284,7 +296,7 @@ function renderHistory() {
   historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
 }
 
-async function sendWinToServer(address, emojis, reward) {
+/*async function sendWinToServer(address, emojis, reward) {
   try {
     await fetch(`${SERVER_URL}/api/wins`, {
       method: 'POST',
@@ -331,3 +343,4 @@ function renderWinners(data) {
 }
 
 fetchWinners();
+*/
