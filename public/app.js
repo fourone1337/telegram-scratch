@@ -26,43 +26,30 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  console.log("🔧 wallet.account.address:", wallet?.account?.address);
-
-  let rawAddress = null;
-
-  if (wallet?.account?.address) {
-    try {
-      // TonWeb сразу приводит к raw (0:…)
-      rawAddress = new TonWeb.utils.Address(wallet.account.address).toString();
-    } catch (e) {
-      console.error("❌ Ошибка конвертации адреса:", e);
-    }
-  }
-
-  const shortAddress = rawAddress
-    ? `${rawAddress.slice(0, 4)}...${rawAddress.slice(-3)}`
+  const fullAddress = wallet?.account?.address || "";
+  const shortAddress = fullAddress
+    ? `${fullAddress.slice(0, 4)}...${fullAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  currentWalletAddress = rawAddress || null;
-
-  walletDisplay.textContent = rawAddress
+  currentWalletAddress = fullAddress || null;
+  walletDisplay.textContent = fullAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !rawAddress;
-  document.getElementById("topup").disabled = !rawAddress;
+  buyBtn.disabled = !fullAddress;
+  document.getElementById("topup").disabled = !fullAddress;
 
-  status.textContent = rawAddress
+  status.textContent = fullAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (rawAddress) {
-    console.log("🧪 Raw address from TonConnect:", rawAddress);
-    fetchBalance(rawAddress); // передаём raw
+  if (fullAddress) {
+    
+    console.log("🧪 Address from TonConnect:", wallet?.account?.address); // должен быть EQ...
+
+    fetchBalance(fullAddress); // ✅ вот так
   }
 });
-
-
 
 // ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
@@ -297,7 +284,7 @@ function renderHistory() {
   historyDiv.innerHTML = "<h3>История игр</h3>" + listItems.join("");
 }
 
-/*async function sendWinToServer(address, emojis, reward) {
+async function sendWinToServer(address, emojis, reward) {
   try {
     await fetch(`${SERVER_URL}/api/wins`, {
       method: 'POST',
@@ -344,4 +331,3 @@ function renderWinners(data) {
 }
 
 fetchWinners();
-*/
