@@ -19,46 +19,40 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
-// ✅ Инициализация TonConnect
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
-  buttonRootId: 'ton-connect'
-});
-
 tonConnectUI.onStatusChange(wallet => {
   console.log("🔧 wallet.account.address:", wallet?.account?.address);
 
-  let rawAddress = wallet?.account?.address || "";
-  let friendlyAddress = null;
+  let rawAddress = null;
 
-  if (rawAddress) {
+  if (wallet?.account?.address) {
     try {
-  friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, false);
-} catch (e) {
-  console.error("❌ Ошибка конвертации адреса:", e);
-}
+      // TonWeb сразу приводит к raw (0:…)
+      rawAddress = new TonWeb.utils.Address(wallet.account.address).toString();
+    } catch (e) {
+      console.error("❌ Ошибка конвертации адреса:", e);
+    }
   }
 
-  const shortAddress = friendlyAddress
-    ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
+  const shortAddress = rawAddress
+    ? `${rawAddress.slice(0, 4)}...${rawAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  // ✅ сохраняем уже friendly адрес
-  currentWalletAddress = friendlyAddress || null;
-  walletDisplay.textContent = friendlyAddress
+  currentWalletAddress = rawAddress || null;
+
+  walletDisplay.textContent = rawAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !friendlyAddress;
-  document.getElementById("topup").disabled = !friendlyAddress;
+  buyBtn.disabled = !rawAddress;
+  document.getElementById("topup").disabled = !rawAddress;
 
-  status.textContent = friendlyAddress
+  status.textContent = rawAddress
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
-  if (friendlyAddress) {
-    console.log("🧪 Friendly address from TonConnect:", friendlyAddress);
-    fetchBalance(friendlyAddress); // ✅ теперь friendly адрес
+  if (rawAddress) {
+    console.log("🧪 Raw address from TonConnect:", rawAddress);
+    fetchBalance(rawAddress); // передаём raw
   }
 });
 
