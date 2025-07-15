@@ -1,4 +1,4 @@
-// ✅ app.js — очищенный и актуализированный
+// ✅ app.js — обновлённый
 const buyBtn = document.getElementById("buy");
 const status = document.getElementById("status");
 const walletDisplay = document.getElementById("wallet-address");
@@ -19,6 +19,26 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
+// ✅ небольшая функция для обновления только текста баланса
+function updateBalanceText(balance, isError = false) {
+  const balanceTextEl = document.getElementById("balance-text");
+  if (balanceTextEl) {
+    if (isError) {
+      balanceTextEl.textContent = "Ошибка";
+    } else {
+      balanceTextEl.textContent = `${balance.toFixed(2)} TON`;
+    }
+  } else {
+    // fallback, если span нет
+    const display = document.getElementById("balance-display");
+    if (display) {
+      display.textContent = isError
+        ? "💰 Баланс: ошибка"
+        : `💰 Баланс: ${balance.toFixed(2)} TON`;
+    }
+  }
+}
+
 // ✅ Инициализация TonConnect
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
@@ -33,35 +53,36 @@ tonConnectUI.onStatusChange(wallet => {
 
   if (rawAddress) {
     try {
-  friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, true);
-} catch (e) {
-  console.error("❌ Ошибка конвертации адреса:", e);
-}
+      friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, true);
+    } catch (e) {
+      console.error("❌ Ошибка конвертации адреса:", e);
+    }
   }
 
   const shortAddress = friendlyAddress
     ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
     : "🔴 Кошелёк не подключён.";
 
-  // ✅ сохраняем уже friendly адрес
   currentWalletAddress = friendlyAddress || null;
   walletDisplay.textContent = friendlyAddress
     ? `🟢 Кошелёк: ${shortAddress}`
     : shortAddress;
 
-  buyBtn.disabled = !friendlyAddress;
-  document.getElementById("topup").disabled = !friendlyAddress;
+  // ✅ управляем кнопками
+  const isEnabled = !!friendlyAddress;
+  buyBtn.disabled = !isEnabled;
+  document.getElementById("topup").disabled = !isEnabled;
+  document.getElementById("withdraw").disabled = !isEnabled;
 
-  status.textContent = friendlyAddress
+  status.textContent = isEnabled
     ? "Нажмите «Купить билет», чтобы начать игру!"
     : "Подключите кошелёк для начала игры.";
 
   if (friendlyAddress) {
     console.log("🧪 Friendly address from TonConnect:", friendlyAddress);
-    fetchBalance(friendlyAddress); // ✅ теперь friendly адрес
+    fetchBalance(friendlyAddress);
   }
 });
-
 
 // ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
@@ -74,7 +95,7 @@ buyBtn.onclick = async () => {
     buyBtn.disabled = true;
     status.textContent = "⏳ Проверяем баланс...";
 
-    await spendBalance(currentWalletAddress, 0.05); //, была 1!!!!!
+    await spendBalance(currentWalletAddress, 0.05);
     currentTicket = generateTicket();
     openedIndices = [];
     status.textContent = "Выберите 3 ячейки, чтобы открыть";
@@ -117,7 +138,6 @@ document.getElementById("topup").onclick = async () => {
       ]
     });
 
-    // 👇 Проверим перевод и начислим виртуально
     await verifyTopup(currentWalletAddress, amount);
   } catch (err) {
     console.error("❌ Ошибка при пополнении:", err);
@@ -192,10 +212,10 @@ async function fetchBalance(address) {
     const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Ошибка запроса");
-    document.getElementById("balance-display").textContent = `💰 Баланс: ${data.balance.toFixed(2)} TON`;
+    updateBalanceText(data.balance);
   } catch (err) {
     console.error("Ошибка загрузки баланса:", err);
-    document.getElementById("balance-display").textContent = "💰 Баланс: ошибка";
+    updateBalanceText(0, true);
   }
 }
 
@@ -268,6 +288,7 @@ function checkWin(ticket) {
   history.push({ ticket, opened: [...openedIndices], winner: allSame, openedEmojis });
   renderHistory();
 }
+
 
 function renderHistory() {
   let historyDiv = document.getElementById("history");
