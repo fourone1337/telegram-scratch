@@ -3,26 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TON Скретч-лотерея</title>
+  <title>TON Скретч‑лотерея</title>
+  <!-- TonConnect UI -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <!-- TonCore для конвертации адресов -->
+  <script src="https://unpkg.com/@ton/core@0.61.0/dist/ton-core.min.js"></script>
   <link rel="stylesheet" href="style.css" />
-   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <script src="https://unpkg.com/tonweb@latest/dist/tonweb.js"></script>
-
 </head>
 <body>
-  <h1>🎰 Скретч-лотерея на TON</h1>
-
-  <div id="ton-connect"></div>
   <div id="wallet-address">🔴 Кошелёк не подключён.</div>
-  <div id="balance-display">💰 Баланс: —</div>
+  <div id="balance-display">💰 Баланс: --</div>
+  <div id="status">Подключите кошелёк для начала игры.</div>
+  <div id="ton-connect"></div>
+  <button id="buy">Купить билет</button>
+  <button id="topup">Пополнить</button>
+  <button id="withdraw">Вывести</button>
 
-  <button id="topup" disabled>➕ Пополнить</button>
-  <button id="withdraw">💸 Вывести</button>
-  <button id="buy" disabled>🎟️ Купить билет</button>
-  <div id="status"></div>
-
-<script src="https://unpkg.com/@ton/core@0.61.0/dist/ton-core.min.js"></script>
-<script src="app.js"></script>
-
+  <script src="app.js"></script>
 </body>
 </html>
+
