@@ -281,12 +281,20 @@ function checkWin(ticket) {
     status.textContent = "😞 К сожалению, вы проиграли. Попробуйте ещё.";
   }
 
+  // 👇 вместо renderTicket
+  const cells = document.querySelectorAll("#ticket-container div");
+  ticket.forEach((emoji, i) => {
+    if (!openedIndices.includes(i)) {
+      cells[i].textContent = emoji;
+      cells[i].classList.add("opened");
+    }
+  });
   openedIndices = ticket.map((_, i) => i);
-  renderTicket(ticket);
 
   history.push({ ticket, opened: [...openedIndices], winner: allSame, openedEmojis });
   renderHistory();
 }
+
 
 
 function renderHistory() {
