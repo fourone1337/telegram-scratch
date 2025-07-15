@@ -46,33 +46,30 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 tonConnectUI.onStatusChange(wallet => {
-  console.log("🔧 wallet.account.address:", wallet?.account?.address);
-
-  let rawAddress = wallet?.account?.address || "";
+  const rawAddress = wallet?.account?.address || "";
   let friendlyAddress = null;
 
   if (rawAddress) {
     try {
-      friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(false, false, true);
-    } catch (e) {
-      console.error("❌ Ошибка конвертации адреса:", e);
+      // true,true,true = testOnly,bounceable,friendly
+      // false,true,true = mainnet,bounceable,friendly
+      friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(true, true, true);
+    } catch (e1) {
+      try {
+        // пробуем другой вариант (не bounceable)
+        friendlyAddress = new TonWeb.utils.Address(rawAddress).toString(true, false, true);
+      } catch (e2) {
+        console.error("❌ Ошибка конвертации адреса:", e1, e2);
+      }
     }
   }
 
-  const shortAddress = friendlyAddress
-    ? `${friendlyAddress.slice(0, 4)}...${friendlyAddress.slice(-3)}`
-    : "🔴 Кошелёк не подключён.";
-
-  currentWalletAddress = friendlyAddress || null;
-  walletDisplay.textContent = friendlyAddress
-    ? `🟢 Кошелёк: ${shortAddress}`
-    : shortAddress;
-
-  // ✅ управляем кнопками
   const isEnabled = !!friendlyAddress;
   buyBtn.disabled = !isEnabled;
   document.getElementById("topup").disabled = !isEnabled;
   document.getElementById("withdraw").disabled = !isEnabled;
+
+  currentWalletAddress = friendlyAddress || null;
 
   status.textContent = isEnabled
     ? "Нажмите «Купить билет», чтобы начать игру!"
@@ -83,6 +80,7 @@ tonConnectUI.onStatusChange(wallet => {
     fetchBalance(friendlyAddress);
   }
 });
+
 
 // ✅ Кнопка "Купить билет"
 buyBtn.onclick = async () => {
