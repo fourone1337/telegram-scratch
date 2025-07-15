@@ -315,25 +315,24 @@ html, body {
 
 /* Состояние открытой ячейки */
 #ticket-container div.opened {
-  border-color: #f57c00;
-  color: #e65100;
-  background: linear-gradient(145deg, #fff3e0, #ffe0b2);
-  box-shadow: 0 0 15px rgba(245,124,0,0.4);
+  border-color: #28a745; /* зелёный бордюр для выигрыша */
+  background: linear-gradient(145deg, #e8f5e9, #c8e6c9); /* мягкий зелёный фон */
+  color: #1b5e20;
+  animation: openFlip 0.4s ease-out;
+  transform-origin: center;
 }
 
-/* Анимированное свечение для открытой ячейки */
-#ticket-container div.opened::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  border: 2px solid rgba(255,165,0,0.6);
-  animation: glow 1.5s infinite ease-in-out;
-  pointer-events: none;
-}
-
-@keyframes glow {
-  0% { box-shadow: 0 0 5px rgba(255,165,0,0.3); opacity: 0.4; }
-  50% { box-shadow: 0 0 15px rgba(255,165,0,0.8); opacity: 1; }
-  100% { box-shadow: 0 0 5px rgba(255,165,0,0.3); opacity: 0.4; }
+/* Анимация открытия */
+@keyframes openFlip {
+  0% {
+    transform: rotateY(90deg) scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: rotateY(-20deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+  }
 }
