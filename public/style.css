@@ -213,3 +213,75 @@ html, body {
   gap: 2px;
   margin-top: 20px;
 }
+
+/* === Новый стиль игровых полей === */
+#ticket-container {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-gap: 16px;
+  justify-content: center;
+  margin: 30px auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f7f7f7, #ffffff);
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.08);
+}
+
+#ticket-container div {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #ffffff, #e3f2fd);
+  border: 2px solid #007bff;
+  border-radius: 16px;
+  font-size: 40px;
+  color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#ticket-container div:hover {
+  background: linear-gradient(135deg, #d0e9ff, #ffffff);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+#ticket-container div.opened {
+  background: linear-gradient(135deg, #ffe082, #ffecb3);
+  color: #e65100;
+  border-color: #ffb300;
+}
+
+#ticket-container div::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0) 30%,
+    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0) 70%
+  );
+  transform: rotate(25deg);
+  animation: shine 3s infinite;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) rotate(25deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(25deg);
+  }
+}
