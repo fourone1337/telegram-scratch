@@ -347,3 +347,18 @@ html, body {
   transition: all 0.2s ease;
 }
 
+#buy-again {
+  margin-top: 20px;
+  font-size: 16px;
+  padding: 10px 20px;
+  background-color: #28a745;
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#buy-again:hover {
+  background-color: #218838;
+}
