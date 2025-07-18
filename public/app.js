@@ -52,7 +52,8 @@ tonConnectUI.onStatusChange(wallet => {
   }
 
   const enabled = !!friendly;
-  buyBtn.disabled = !enabled;
+  buyBtn.disabled = !enabled;       // ✅ активируем 6-слотовую
+  buyBtn9.disabled = !enabled;   // ✅ активируем 9-слотовую
   document.getElementById("topup").disabled = !enabled;
   document.getElementById("withdraw").disabled = !enabled;
 
