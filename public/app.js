@@ -239,3 +239,28 @@ function checkWin(ticket) {
   });
   openedIndices = ticket.map((_, i) => i);
 }
+
+// Модальное окно условий
+const modal = document.getElementById("terms-modal");
+const closeBtn = document.getElementById("close-terms");
+const acceptBtn = document.getElementById("accept-terms");
+const termsText = document.getElementById("terms-text");
+
+document.getElementById("disclaimer-button").addEventListener("click", async () => {
+  try {
+    const response = await fetch("terms.txt");
+    const text = await response.text();
+    termsText.textContent = text;
+  } catch (err) {
+    termsText.textContent = "⚠ Не удалось загрузить условия.";
+  }
+  modal.style.display = "block";
+});
+
+closeBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+});
+
+acceptBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+});
