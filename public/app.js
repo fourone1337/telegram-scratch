@@ -264,3 +264,100 @@ closeBtn.addEventListener("click", () => {
 acceptBtn.addEventListener("click", () => {
   modal.style.display = "none";
 });
+
+
+// === 9-слотовый билет ===
+const buyBtn9 = document.getElementById("buy9");
+const ticketModal9 = document.getElementById("ticket-modal-9");
+const closeTicketBtn9 = document.getElementById("close-ticket-9");
+const buyAgainBtn9 = document.getElementById("buy-again-9");
+
+let currentTicket9 = null;
+let openedIndices9 = [];
+
+// генерируем 9 слотов
+function generateTicket9() {
+  return Array.from({ length: 9 }, () => emojis[Math.floor(Math.random() * emojis.length)]);
+}
+
+function renderTicket9(ticket) {
+  const container = document.getElementById("ticket-container-9");
+  container.innerHTML = "";
+
+  ticket.forEach((emoji, idx) => {
+    const cell = document.createElement("div");
+    cell.textContent = openedIndices9.includes(idx) ? emoji : "❓";
+    if (openedIndices9.includes(idx)) cell.classList.add("opened");
+
+    cell.onclick = () => {
+      if (openedIndices9.length >= 3 || openedIndices9.includes(idx)) return;
+      openedIndices9.push(idx);
+      cell.textContent = emoji;
+      cell.classList.add("selected", "opened");
+      if (openedIndices9.length === 3) checkWin9(ticket);
+    };
+    container.appendChild(cell);
+  });
+}
+
+function checkWin9(ticket) {
+  const openedEmojis = openedIndices9.map(i => ticket[i]);
+  const allSame = openedEmojis.every(e => e === openedEmojis[0]);
+
+  if (allSame) {
+    const symbol = openedEmojis[0];
+    const reward = emojiRewards[symbol] || 0;
+    status.textContent = `🎉 (9 слотов) Вы выиграли ${reward} TON за ${symbol}!`;
+  } else {
+    status.textContent = "😞 (9 слотов) К сожалению, вы проиграли.";
+  }
+
+  const cells = document.querySelectorAll("#ticket-container-9 div");
+  ticket.forEach((emoji, i) => {
+    if (!openedIndices9.includes(i)) {
+      cells[i].textContent = emoji;
+      cells[i].classList.add("opened");
+    }
+  });
+  openedIndices9 = ticket.map((_, i) => i);
+}
+
+async function buyTicket9() {
+  if (!currentWalletAddress) {
+    alert("Сначала подключите кошелёк!");
+    return;
+  }
+  try {
+    status.textContent = "⏳ Проверяем баланс...";
+    buyBtn9.disabled = true;
+    buyAgainBtn9.disabled = true;
+
+    await spendBalance(currentWalletAddress, 0.025); // цена билета
+
+    currentTicket9 = generateTicket9();
+    openedIndices9 = [];
+    status.textContent = "Выберите 3 ячейки, чтобы открыть";
+    renderTicket9(currentTicket9);
+
+    ticketModal9.style.display = "block";
+
+    await fetchBalance(currentWalletAddress);
+  } catch (err) {
+    console.error("Ошибка покупки (9 слотов):", err);
+    alert(`Ошибка: ${err.message}`);
+    status.textContent = "❌ Покупка не удалась.";
+  } finally {
+    buyBtn9.disabled = false;
+    buyAgainBtn9.disabled = false;
+  }
+}
+
+// Кнопки 9-слотового билета
+buyBtn9.onclick = buyTicket9;
+buyAgainBtn9.onclick = buyTicket9;
+
+// Закрытие модалки
+closeTicketBtn9.onclick = () => ticketModal9.style.display = "none";
+window.addEventListener("click", (e) => {
+  if (e.target === ticketModal9) ticketModal9.style.display = "none";
+});
