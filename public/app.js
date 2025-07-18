@@ -77,7 +77,7 @@ async function buyTicket() {
     buyAgainBtn.disabled = true;
 
     // цена билета
-    await spendBalance(currentWalletAddress, 0.05); ✅ цена билета 6 слотов
+    await spendBalance(currentWalletAddress, 0.05); //✅ цена билета 6 слотов
 
     // генерация и рендер
     currentTicket = generateTicket();
