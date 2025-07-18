@@ -388,3 +388,84 @@ html, body {
 #ticket-container-9 div.selected {
   border-color: gold;
 }
+
+
+/* === Общий стиль для кнопок повторной покупки === */
+#buy-again,
+#buy-again-9 {
+  margin-top: 20px;
+  font-size: 16px;
+  padding: 10px 20px;
+  background-color: #28a745;
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  display: inline-block;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+#buy-again:hover,
+#buy-again-9:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+/* === Общий стиль для обоих игровых полей === */
+#ticket-container,
+#ticket-container-9 {
+  display: grid;
+  grid-template-columns: repeat(3, 100px); /* одинаковый размер */
+  grid-gap: 16px;
+  justify-content: center;
+  margin: 30px auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffe082 , #ffffff);
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.08);
+}
+
+/* Ячейки игрового поля (общий стиль) */
+#ticket-container div,
+#ticket-container-9 div {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #ffffff, #e3f2fd);
+  border: 2px solid #007bff;
+  border-radius: 16px;
+  font-size: 40px;
+  color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#ticket-container div:hover,
+#ticket-container-9 div:hover {
+  background: linear-gradient(135deg, #d0e9ff, #ffffff);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+#ticket-container div.opened,
+#ticket-container-9 div.opened {
+  background: linear-gradient(135deg, #ffe082, #ffecb3);
+  color: #e65100;
+  border-color: #ffb300;
+}
+
+#ticket-container div.selected,
+#ticket-container-9 div.selected {
+  border-color: #42a5f5;
+  background: rgba(66,165,245,0.15);
+  box-shadow: 0 0 10px rgba(66,165,245,0.5);
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
