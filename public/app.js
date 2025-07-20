@@ -104,6 +104,32 @@ async function buyTicket() {
 buyBtn.onclick = buyTicket;
 buyAgainBtn.onclick = buyTicket;
 
+// === Кнопка бесплатного билета ===
+const freeTicketBtn = document.getElementById("free-ticket");
+freeTicketBtn.onclick = async () => {
+  if (!currentWalletAddress) return alert("Сначала подключите кошелёк!");
+  try {
+    const res = await fetch(`${SERVER_URL}/api/use-free-ticket`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: currentWalletAddress })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Ошибка");
+
+    // Генерация билета без списания TON
+    currentTicket = generateTicket();
+    openedIndices = [];
+    status.textContent = "Выберите 3 ячейки, чтобы открыть";
+    renderTicket(currentTicket);
+    ticketModal.style.display = "block";
+
+    alert(`✅ Бесплатный билет использован! Осталось: ${data.remaining}`);
+  } catch (err) {
+    alert(`❌ ${err.message}`);
+  }
+};
+
 // === Закрытие модалки билета ===
 closeTicketBtn.onclick = () => ticketModal.style.display = "none";
 window.onclick = (e) => {

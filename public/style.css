@@ -469,3 +469,10 @@ html, body {
   transition: all 0.2s ease;
 }
 
+#free-ticket {
+  margin-top: 10px;
+  background-color: #ff9800;
+}
+#free-ticket:hover {
+  background-color: #e68900;
+}
