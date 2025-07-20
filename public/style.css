@@ -392,6 +392,7 @@ html, body {
 
 /* === Общий стиль для кнопок повторной покупки === */
 #buy-again,
+#copy-ref,
 #buy-again-9 {
   margin-top: 20px;
   font-size: 16px;
@@ -406,6 +407,7 @@ html, body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 #buy-again:hover,
+#copy-ref,
 #buy-again-9:hover {
   background-color: #218838;
   transform: translateY(-1px);
@@ -474,13 +476,5 @@ html, body {
   background-color: #ff9800;
 }
 #free-ticket:hover {
-  background-color: #e68900;
-}
-
-#copy-ref {
-  margin-top: 10px;
-  background-color: #ff9800;
-}
-#copy-ref:hover {
   background-color: #e68900;
 }
