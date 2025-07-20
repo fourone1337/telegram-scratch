@@ -73,10 +73,24 @@ copyRefBtn.onclick = () => {
     return;
   }
   const link = `${window.location.origin}?ref=${currentWalletAddress}`;
-  navigator.clipboard.writeText(link).then(() => {
-    alert("✅ Ваша реферальная ссылка скопирована!\n" + link);
-  });
+
+  // Пытаемся скопировать через Clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(link)
+      .then(() => {
+        alert("✅ Ваша реферальная ссылка скопирована!\n" + link);
+      })
+      .catch(err => {
+        console.warn("⚠️ Clipboard API не сработал:", err);
+        // Фоллбек
+        prompt("Скопируйте ссылку вручную:", link);
+      });
+  } else {
+    // Фоллбек если Clipboard API недоступен
+    prompt("Скопируйте ссылку вручную:", link);
+  }
 };
+
 
 // === Универсальная покупка билета ===
 async function buyTicket() {
