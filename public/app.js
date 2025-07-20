@@ -65,6 +65,19 @@ tonConnectUI.onStatusChange(wallet => {
   if (friendly) fetchBalance(friendly);
 });
 
+// === Кнопка копирования реферальной ссылки ===
+const copyRefBtn = document.getElementById("copy-ref");
+copyRefBtn.onclick = () => {
+  if (!currentWalletAddress) {
+    alert("Сначала подключите кошелёк!");
+    return;
+  }
+  const link = `${window.location.origin}?ref=${currentWalletAddress}`;
+  navigator.clipboard.writeText(link).then(() => {
+    alert("✅ Ваша реферальная ссылка скопирована!\n" + link);
+  });
+};
+
 // === Универсальная покупка билета ===
 async function buyTicket() {
   if (!currentWalletAddress) {
