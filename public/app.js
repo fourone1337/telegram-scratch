@@ -63,9 +63,8 @@ tonConnectUI.onStatusChange(wallet => {
     : "Подключите кошелёк для начала игры.";
 
   if (friendly) fetchBalance(friendly);
-});
 
-const referrer = localStorage.getItem('referrer');
+  const referrer = localStorage.getItem('referrer');
 if (referrer && referrer !== friendly) {
   fetch(`${SERVER_URL}/api/register-referral`, {
     method: "POST",
@@ -76,6 +75,7 @@ if (referrer && referrer !== friendly) {
   .then(console.log)
   .catch(console.error);
 }
+});
 
 // === Кнопка копирования реферальной ссылки ===
 const copyRefBtn = document.getElementById("copy-ref");
