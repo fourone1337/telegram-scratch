@@ -1,3 +1,4 @@
+/* === Основной стиль страницы === */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #e0f7fa, #ffffff);
@@ -5,14 +6,18 @@ body {
   padding: 40px 20px;
   margin: 0;
   color: #333;
+  overflow: hidden;
+  height: 100%;
 }
 
+/* Заголовки */
 h1 {
   font-size: 32px;
   color: #007bff;
   margin-bottom: 20px;
 }
 
+/* Кнопки */
 button {
   display: block;
   margin: 15px auto;
@@ -26,18 +31,16 @@ button {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   transition: background-color 0.3s, transform 0.2s;
 }
-
 button:hover:not(:disabled) {
   background-color: #0056b3;
   transform: translateY(-1px);
 }
-
 button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
 
-/* Общая строка с балансом, TonConnect и кнопками */
+/* Строка с балансом и кнопками */
 .wallet-bar {
   display: flex;
   align-items: center;
@@ -45,18 +48,15 @@ button:disabled {
   gap: 12px;
   margin: 20px auto;
 }
-
-/* Баланс и иконка TON */
 .balance-display {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 18px;
   color: #333;
-  line-height: 1;
 }
 
-/* Иконки-кнопки (пополнение / вывод) */
+/* Иконки-кнопки */
 .icon-button {
   background: none;
   border: none;
@@ -64,148 +64,26 @@ button:disabled {
   cursor: pointer;
   transition: transform 0.2s;
 }
-
 .icon-button svg {
   display: block;
-  vertical-align: middle;
 }
-
 .icon-button:disabled svg {
   stroke: #ccc;
   cursor: not-allowed;
 }
-
 .icon-button:hover:not(:disabled) {
   transform: scale(1.2);
 }
 
-/* Контейнер TON-кнопки */
-#ton-connect {
-  display: flex;
-  justify-content: center;
-}
-
-/* Игровая сетка */
-#ticket-container {
-  display: grid;
-  grid-template-columns: repeat(3, 80px);
-  grid-gap: 12px;
-  justify-content: center;
-  margin: 30px auto;
-}
-
-#ticket-container div {
-  width: 80px;
-  height: 80px;
-  background-color: #ffffff;
-  border: 2px solid #007bff;
-  border-radius: 12px;
-  font-size: 40px;
-  color: #007bff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-  cursor: pointer;
-  user-select: none;
-}
-
-#ticket-container div:hover {
-  background-color: #e3f2fd;
-}
-
-/* История и победители */
-#winners,
-#history {
-  margin-top: 40px;
-  text-align: left;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 14px;
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-}
-
-/* Иконка TON */
-.ton-logo {
-  flex-shrink: 0;
-}
-
+/* Баннер */
 .page-banner {
   max-width: 100%;
   height: auto;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   border-radius: 12px;
-  box-shadow: 0 0px 0px rgba(0,0,0,0.00);
 }
 
-html, body {
-  overflow: hidden;
-  height: 100%;
-}
-
-/*------------------------------------------------модальное окно-----------------------------*/
-
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 10000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-  background-color: #fff;
-  margin: 10% auto;
-  padding: 20px 30px;
-  border-radius: 10px;
-  width: 75%;
-  max-width: 320px;
-  text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.modal-content h2 {
-  margin-top: 0;
-  color: #007bff;
-}
-
-#terms-text {
-  font-size: 14px;
-  color: #444;
-  margin-bottom: 20px;
-  max-height: 200px;
-  overflow-y: auto;
-  text-align: left;
-}
-
-#accept-terms {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-#accept-terms:hover {
-  background-color: #0056b3;
-}
-
-.close {
-  position: absolute;
-  right: 20px;
-  top: 10px;
-  font-size: 24px;
-  cursor: pointer;
-}
-
+/* Кнопки покупки */
 .buy-bar {
   display: flex;
   align-items: center;
@@ -214,20 +92,24 @@ html, body {
   margin-top: 20px;
 }
 
-/* === Новый стиль игровых полей === */
-#ticket-container {
+/* Общее поле билета (6 и 9) */
+#ticket-container, #ticket-container-9 {
   display: grid;
   grid-template-columns: repeat(3, 100px);
   grid-gap: 16px;
   justify-content: center;
   margin: 30px auto;
   padding: 20px;
-  background: linear-gradient(135deg, #ffe082 , #ffffff);
+  background: linear-gradient(135deg, #ffe082, #ffffff);
   border-radius: 20px;
   box-shadow: 0 0 15px rgba(0,0,0,0.08);
 }
+#ticket-container-9 {
+  grid-template-columns: repeat(3, 100px);
+}
 
-#ticket-container div {
+/* Ячейки поля */
+#ticket-container div, #ticket-container-9 div {
   width: 100px;
   height: 100px;
   background: linear-gradient(135deg, #ffffff, #e3f2fd);
@@ -245,156 +127,71 @@ html, body {
   position: relative;
   overflow: hidden;
 }
-
-#ticket-container div:hover {
+#ticket-container div:hover,
+#ticket-container-9 div:hover {
   background: linear-gradient(135deg, #d0e9ff, #ffffff);
   box-shadow: 0 6px 10px rgba(0,0,0,0.15);
   transform: translateY(-2px);
 }
-
-#ticket-container div.opened {
+#ticket-container div.opened,
+#ticket-container-9 div.opened {
   background: linear-gradient(135deg, #ffe082, #ffecb3);
   color: #e65100;
   border-color: #ffb300;
 }
-
-#ticket-container div::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    120deg,
-    rgba(255,255,255,0) 30%,
-    rgba(255,255,255,0.4) 50%,
-    rgba(255,255,255,0) 70%
-  );
-  transform: rotate(25deg);
-  animation: shine 3s infinite;
-  pointer-events: none;
-  opacity: 0.3;
-}
-
-@keyframes shine {
-  0% {
-    transform: translateX(-100%) rotate(25deg);
-  }
-  100% {
-    transform: translateX(100%) rotate(25deg);
-  }
-}
-
-/*------------------------------------------------ стиль игровго поля 2----------------------------*/
-/* Ячейки игрового поля */
-#ticket-container div {
-  width: 90px;
-  height: 90px;
-  background-color: #ffffff;
-  border: 3px solid #007bff;
-  border-radius: 14px;
-  font-size: 38px;
-  color: #007bff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Эффект наведения */
-#ticket-container div:hover {
-  box-shadow: 0 8px 18px rgba(0,0,0,0.2);
-  transform: translateY(-2px) scale(1.05);
-}
-
-/* Состояние открытой ячейки */
-#ticket-container div.opened {
-  border-color: #28a745; /* зелёный бордюр для выигрыша */
-  background: linear-gradient(145deg, #e8f5e9, #c8e6c9); /* мягкий зелёный фон */
-  color: #1b5e20;
-  animation: openFlip 1.4s ease-out;
-  transform-origin: center;
-}
-
-/* Анимация открытия */
-@keyframes openFlip {
-  0% {
-    transform: rotateY(90deg) scale(0.3);
-    opacity: 0;
-  }
-  60% {
-    transform: rotateY(-20deg) scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: rotateY(0deg) scale(1);
-  }
-}
-
-
-/* Подсветка выбранной ячейки */
-#ticket-container div.selected {
-  border-color: #42a5f5;            /* голубой бордер */
-  background: rgba(66,165,245,0.15); /* лёгкая голубая подсветка */
+#ticket-container div.selected,
+#ticket-container-9 div.selected {
+  border-color: #42a5f5;
+  background: rgba(66,165,245,0.15);
   box-shadow: 0 0 10px rgba(66,165,245,0.5);
   transform: scale(1.05);
-  transition: all 0.2s ease;
 }
 
-#buy-again {
-  margin-top: 20px;
-  font-size: 16px;
-  padding: 10px 20px;
-  background-color: #28a745;
-  border: none;
-  color: #fff;
+/* Модальные окна */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px 30px;
   border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  width: 75%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
-
-#buy-again:hover {
-  background-color: #218838;
+.modal-content h2 {
+  margin-top: 0;
+  color: #007bff;
 }
-
-
-#ticket-container-9 {
-  display: grid;
-  grid-template-columns: repeat(3, 60px); /* 3x3 сетка */
-  gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
+#terms-text {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
 }
-#ticket-container-9 div {
-  width: 60px;
-  height: 60px;
+.close {
+  position: absolute;
+  right: 20px;
+  top: 10px;
   font-size: 24px;
-  border: 2px solid #007bff;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
 }
-#ticket-container-9 div.opened {
-  background: #eef;
-}
-#ticket-container-9 div.selected {
-  border-color: gold;
-}
 
-
-/* === Общий стиль для кнопок повторной покупки === */
+/* Кнопки в модалках */
 #buy-again,
 #copy-ref,
 #free-ticket,
-#buy-again-9 {
+#buy-again-9,
+#accept-terms {
   margin-top: 20px;
   font-size: 16px;
   padding: 10px 20px;
@@ -408,67 +205,8 @@ html, body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 #buy-again:hover,
-#copy-ref,
-#free-ticket,
-#buy-again-9:hover {
+#buy-again-9:hover,
+#accept-terms:hover {
   background-color: #218838;
   transform: translateY(-1px);
-}
-
-/* === Общий стиль для обоих игровых полей === */
-#ticket-container,
-#ticket-container-9 {
-  display: grid;
-  grid-template-columns: repeat(3, 100px); /* одинаковый размер */
-  grid-gap: 16px;
-  justify-content: center;
-  margin: 30px auto;
-  padding: 20px;
-  background: linear-gradient(135deg, #ffe082 , #ffffff);
-  border-radius: 20px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.08);
-}
-
-/* Ячейки игрового поля (общий стиль) */
-#ticket-container div,
-#ticket-container-9 div {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, #ffffff, #e3f2fd);
-  border: 2px solid #007bff;
-  border-radius: 16px;
-  font-size: 40px;
-  color: #007bff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-#ticket-container div:hover,
-#ticket-container-9 div:hover {
-  background: linear-gradient(135deg, #d0e9ff, #ffffff);
-  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-}
-
-#ticket-container div.opened,
-#ticket-container-9 div.opened {
-  background: linear-gradient(135deg, #ffe082, #ffecb3);
-  color: #e65100;
-  border-color: #ffb300;
-}
-
-#ticket-container div.selected,
-#ticket-container-9 div.selected {
-  border-color: #42a5f5;
-  background: rgba(66,165,245,0.15);
-  box-shadow: 0 0 10px rgba(66,165,245,0.5);
-  transform: scale(1.05);
-  transition: all 0.2s ease;
 }
