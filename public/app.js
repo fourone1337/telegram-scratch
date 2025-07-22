@@ -24,7 +24,7 @@ let currentTicket = null;
 let openedIndices = [];
 const history = [];
 
-// === Обновление баланса ===
+// ✅ Обновление баланса ===
 function updateBalanceText(balance, isError = false) {
   const el = document.getElementById("balance-text");
   el.textContent = isError ? "Ошибка" : `${balance.toFixed(2)} TON`;
@@ -42,7 +42,33 @@ if (refFromLink) {
   localStorage.setItem('referrer', refFromLink);
 }
 ////////////////////////////////////////////////////////////////////////
-// === Инициализация TonConnect ===
+
+// ✅ Логика кастомного alert
+const customAlert = document.getElementById('custom-alert');
+const customAlertText = document.getElementById('custom-alert-text');
+const customAlertOk = document.getElementById('custom-alert-ok');
+const customAlertClose = document.getElementById('close-custom-alert');
+
+function showCustomAlert(text) {
+  customAlertText.textContent = text;
+  customAlert.style.display = 'block';
+}
+
+customAlertOk.onclick = () => {
+  customAlert.style.display = 'none';
+};
+
+customAlertClose.onclick = () => {
+  customAlert.style.display = 'none';
+};
+
+window.addEventListener('click', (e) => {
+  if (e.target === customAlert) {
+    customAlert.style.display = 'none';
+  }
+});
+
+// ✅ Инициализация TonConnect ===
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
   buttonRootId: 'ton-connect'
