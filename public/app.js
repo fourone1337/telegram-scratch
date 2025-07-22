@@ -115,7 +115,7 @@ if (referrer && referrer !== friendly) {
 }
 });
 
-// ✅ Кнопка копирования реферальной ссылки ===
+// === Кнопка копирования реферальной ссылки ===
 const copyRefBtn = document.getElementById("copy-ref");
 copyRefBtn.onclick = () => {
   if (!currentWalletAddress) {
@@ -142,7 +142,7 @@ copyRefBtn.onclick = () => {
 };
 
 
-// ✅ Универсальная покупка билета ===
+// === Универсальная покупка билета ===
 async function buyTicket() {
   if (!currentWalletAddress) {
     showCustomAlert("Сначала подключите кошелёк!");
@@ -177,54 +177,11 @@ async function buyTicket() {
   }
 }
 
-// ✅ Кнопки покупки ===
-// ======= Новые обработчики с учётом buy-modal-6 и buy-modal-9 =======
+// === Кнопки покупки ===
+buyBtn.onclick = buyTicket;
+buyAgainBtn.onclick = buyTicket;
 
-// кнопка "Купить билет 6 слотов" на главном экране
-buyBtn.onclick = () => {
-  if (!currentWalletAddress) {
-    showCustomAlert("Сначала подключите кошелёк!");
-    return;
-  }
-  // открываем модалку подтверждения
-  document.getElementById("buy-modal-6").style.display = "block";
-};
-
-// кнопка "Купить" внутри buy-modal-6
-document.getElementById("confirm-buy-6").onclick = () => {
-  document.getElementById("buy-modal-6").style.display = "none";
-  buyTicket(); // покупаем билет
-};
-
-// кнопка "закрыть" в модалке buy-modal-6
-document.getElementById("close-buy-modal-6").onclick = () => {
-  document.getElementById("buy-modal-6").style.display = "none";
-};
-
-
-// кнопка "Купить билет 9 слотов" на главном экране
-buyBtn9.onclick = () => {
-  if (!currentWalletAddress) {
-    showCustomAlert("Сначала подключите кошелёк!");
-    return;
-  }
-  // открываем модалку подтверждения
-  document.getElementById("buy-modal-9").style.display = "block";
-};
-
-// кнопка "Купить" внутри buy-modal-9
-document.getElementById("confirm-buy-9").onclick = () => {
-  document.getElementById("buy-modal-9").style.display = "none";
-  buyTicket9(); // покупаем билет
-};
-
-// кнопка "закрыть" в модалке buy-modal-9
-document.getElementById("close-buy-modal-9").onclick = () => {
-  document.getElementById("buy-modal-9").style.display = "none";
-};
-
-
-// ✅ Кнопка бесплатного билета ===
+// === Кнопка бесплатного билета ===
 const freeTicketBtn = document.getElementById("free-ticket");
 freeTicketBtn.onclick = async () => {
   if (!currentWalletAddress) return showCustomAlert("Сначала подключите кошелёк!");
@@ -536,8 +493,8 @@ async function buyTicket9() {
   }
 }
 
-// === Привязываем кнопки внутри модалок к покупке ===
-buyAgainBtn.onclick = buyTicket;    
+// Кнопки 9-слотового билета
+buyBtn9.onclick = buyTicket9;
 buyAgainBtn9.onclick = buyTicket9;
 
 // Закрытие модалки
