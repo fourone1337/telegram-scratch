@@ -90,6 +90,30 @@
   </div>
 </div>
 
+<!-- 💸 Модалка вывода средств -->
+<div id="withdraw-modal" class="modal">
+  <div class="modal-content">
+    <span id="close-withdraw" class="close">&times;</span>
+    <h2>💸 Вывод средств</h2>
+    <p>Введите сумму для вывода:</p>
+    <input id="withdraw-input" type="number" min="0" step="0.01"
+           style="width:100%;padding:10px;font-size:16px;margin-top:10px;border-radius:8px;border:1px solid #ccc;">
+    <button id="withdraw-ok" style="margin-top:15px;">Подтвердить</button>
+  </div>
+</div>
+
+<!-- 💰 Модалка пополнения -->
+<div id="topup-modal" class="modal">
+  <div class="modal-content">
+    <span id="close-topup" class="close">&times;</span>
+    <h2>💰 Пополнение баланса</h2>
+    <p>Введите сумму TON для пополнения:</p>
+    <input id="topup-input" type="number" min="0" step="0.01"
+           style="width:100%;padding:10px;font-size:16px;margin-top:10px;border-radius:8px;border:1px solid #ccc;">
+    <button id="topup-ok" style="margin-top:15px;">Подтвердить</button>
+  </div>
+</div>
+
   <script src="app.js"></script>
   <script src="terms.js"></script>
 </body>

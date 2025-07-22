@@ -187,13 +187,29 @@ window.onclick = (e) => {
   if (e.target === ticketModal) ticketModal.style.display = "none";
 };
 
-// === Пополнение TON ===
-document.getElementById("topup").onclick = async () => {
-  if (!currentWalletAddress) return alert("Сначала подключите TON-кошелёк");
-  const input = prompt("Введите сумму TON для пополнения:");
-  const amount = parseFloat(input);
-  if (isNaN(amount) || amount <= 0) return alert("Некорректная сумма");
+// === Модалка пополнения ===
+const topupModal = document.getElementById("topup-modal");
+const closeTopupBtn = document.getElementById("close-topup");
+const topupOkBtn = document.getElementById("topup-ok");
+const topupInput = document.getElementById("topup-input");
 
+document.getElementById("topup").onclick = () => {
+  if (!currentWalletAddress) {
+    alert("Сначала подключите TON-кошелёк");
+    return;
+  }
+  topupInput.value = "";
+  topupModal.style.display = "block";
+};
+
+closeTopupBtn.onclick = () => topupModal.style.display = "none";
+window.addEventListener("click", e => {
+  if (e.target === topupModal) topupModal.style.display = "none";
+});
+
+topupOkBtn.onclick = async () => {
+  const amount = parseFloat(topupInput.value);
+  if (isNaN(amount) || amount <= 0) return alert("Некорректная сумма");
   try {
     status.textContent = "⏳ Ожидаем перевод...";
     await tonConnectUI.sendTransaction({
@@ -204,19 +220,36 @@ document.getElementById("topup").onclick = async () => {
       }]
     });
     await verifyTopup(currentWalletAddress, amount);
+    topupModal.style.display = "none";
   } catch (err) {
     console.error("Ошибка пополнения:", err);
     alert("❌ Пополнение отменено или не удалось");
   }
 };
 
-// === Вывод средств ===
-document.getElementById("withdraw").onclick = async () => {
-  if (!currentWalletAddress) return alert("Сначала подключите кошелёк");
-  const input = prompt("Введите сумму для вывода:");
-  const amount = parseFloat(input);
-  if (isNaN(amount) || amount <= 0) return alert("Некорректная сумма");
+// === Модалка вывода средств ===
+const withdrawModal = document.getElementById("withdraw-modal");
+const closeWithdrawBtn = document.getElementById("close-withdraw");
+const withdrawOkBtn = document.getElementById("withdraw-ok");
+const withdrawInput = document.getElementById("withdraw-input");
 
+document.getElementById("withdraw").onclick = () => {
+  if (!currentWalletAddress) {
+    alert("Сначала подключите кошелёк");
+    return;
+  }
+  withdrawInput.value = "";
+  withdrawModal.style.display = "block";
+};
+
+closeWithdrawBtn.onclick = () => withdrawModal.style.display = "none";
+window.addEventListener("click", e => {
+  if (e.target === withdrawModal) withdrawModal.style.display = "none";
+});
+
+withdrawOkBtn.onclick = async () => {
+  const amount = parseFloat(withdrawInput.value);
+  if (isNaN(amount) || amount <= 0) return alert("Некорректная сумма");
   try {
     const res = await fetch(`${SERVER_URL}/api/request-withdraw`, {
       method: "POST",
@@ -224,8 +257,12 @@ document.getElementById("withdraw").onclick = async () => {
       body: JSON.stringify({ address: currentWalletAddress, amount })
     });
     const data = await res.json();
-    if (data.success) alert("✅ Заявка на вывод принята");
-    else alert("❌ Ошибка: " + data.error);
+    if (data.success) {
+      alert("✅ Заявка на вывод принята");
+      withdrawModal.style.display = "none";
+    } else {
+      alert("❌ Ошибка: " + data.error);
+    }
   } catch (err) {
     alert("❌ Ошибка при выводе: " + err.message);
   }

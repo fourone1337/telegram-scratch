@@ -210,3 +210,16 @@ button:disabled {
   background-color: #218838;
   transform: translateY(-1px);
 }
+
+.modal-content input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+.modal-content button {
+  margin-top: 15px;
+}
+
