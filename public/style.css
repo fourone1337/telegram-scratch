@@ -191,7 +191,10 @@ button:disabled {
 #copy-ref,
 #free-ticket,
 #buy-again-9,
-#accept-terms {
+#accept-terms,
+#custom-alert-ok,
+#topup-ok,
+#withdraw-ok {
   margin-top: 20px;
   font-size: 16px;
   padding: 10px 20px;
