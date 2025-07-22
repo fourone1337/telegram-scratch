@@ -29,7 +29,19 @@ function updateBalanceText(balance, isError = false) {
   const el = document.getElementById("balance-text");
   el.textContent = isError ? "Ошибка" : `${balance.toFixed(2)} TON`;
 }
+//////////////////////////////////////////////////////////////////////////////
+// 📌 Получаем параметры из URL
+const params = new URLSearchParams(window.location.search);
 
+// 📌 Смотрим, есть ли параметр ref
+const refFromLink = params.get('ref');
+
+if (refFromLink) {
+  console.log("✅ Найден реферал в ссылке:", refFromLink);
+  // Сохраняем его в localStorage, чтобы потом использовать при регистрации
+  localStorage.setItem('referrer', refFromLink);
+}
+////////////////////////////////////////////////////////////////////////
 // === Инициализация TonConnect ===
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://telegram-scratch-two.vercel.app/tonconnect-manifest.json',
