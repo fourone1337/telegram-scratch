@@ -510,11 +510,7 @@ async function buyTicket9() {
 }
 
 // === Привязываем кнопки внутри модалок к покупке ===
-buyAgainBtn.onclick = buyTicket;
-buyAgainBtn9.onclick = buyTicket9;
-
-// Кнопки 9-слотового билета
-buyBtn9.onclick = buyTicket9;
+buyAgainBtn.onclick = buyTicket;    
 buyAgainBtn9.onclick = buyTicket9;
 
 // Закрытие модалки
