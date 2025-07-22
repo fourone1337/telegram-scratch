@@ -119,7 +119,7 @@ if (referrer && referrer !== friendly) {
 const copyRefBtn = document.getElementById("copy-ref");
 copyRefBtn.onclick = () => {
   if (!currentWalletAddress) {
-    alert("Сначала подключите кошелёк!");
+    showCustomAlert("Сначала подключите кошелёк!");
     return;
   }
   const link = `${window.location.origin}?ref=${currentWalletAddress}`;
@@ -128,7 +128,7 @@ copyRefBtn.onclick = () => {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(link)
       .then(() => {
-        alert("✅ Ваша реферальная ссылка скопирована!\n" + link);
+        showCustomAlert("✅ Ваша реферальная ссылка скопирована!\n" + link);
       })
       .catch(err => {
         console.warn("⚠️ Clipboard API не сработал:", err);
@@ -145,7 +145,7 @@ copyRefBtn.onclick = () => {
 // === Универсальная покупка билета ===
 async function buyTicket() {
   if (!currentWalletAddress) {
-    alert("Сначала подключите кошелёк!");
+    showCustomAlert("Сначала подключите кошелёк!");
     return;
   }
   try {
@@ -169,7 +169,7 @@ async function buyTicket() {
     await fetchBalance(currentWalletAddress);
   } catch (err) {
     console.error("Ошибка покупки:", err);
-    alert(`Ошибка: ${err.message}`);
+    showCustomAlert(`Ошибка: ${err.message}`);
     status.textContent = "❌ Покупка не удалась.";
   } finally {
     buyBtn.disabled = false;
@@ -184,7 +184,7 @@ buyAgainBtn.onclick = buyTicket;
 // === Кнопка бесплатного билета ===
 const freeTicketBtn = document.getElementById("free-ticket");
 freeTicketBtn.onclick = async () => {
-  if (!currentWalletAddress) return alert("Сначала подключите кошелёк!");
+  if (!currentWalletAddress) return showCustomAlert("Сначала подключите кошелёк!");
   try {
     const res = await fetch(`${SERVER_URL}/api/use-free-ticket`, {
       method: "POST",
@@ -201,9 +201,9 @@ freeTicketBtn.onclick = async () => {
     renderTicket(currentTicket);
     ticketModal.style.display = "block";
 
-    alert(`✅ Бесплатный билет использован! Осталось: ${data.remaining}`);
+    showCustomAlert(`✅ Бесплатный билет использован! Осталось: ${data.remaining}`);
   } catch (err) {
-    alert(`❌ ${err.message}`);
+    showCustomAlert(`❌ ${err.message}`);
   }
 };
 
@@ -221,7 +221,7 @@ const topupInput = document.getElementById("topup-input");
 
 document.getElementById("topup").onclick = () => {
   if (!currentWalletAddress) {
-    alert("Сначала подключите TON-кошелёк");
+    showCustomAlert("Сначала подключите TON-кошелёк");
     return;
   }
   topupInput.value = "";
@@ -235,7 +235,7 @@ window.addEventListener("click", e => {
 
 topupOkBtn.onclick = async () => {
   const amount = parseFloat(topupInput.value);
-  if (isNaN(amount) || amount <= 0) return alert("Некорректная сумма");
+  if (isNaN(amount) || amount <= 0) return showCustomAlert("Некорректная сумма");
   try {
     status.textContent = "⏳ Ожидаем перевод...";
     await tonConnectUI.sendTransaction({
@@ -249,7 +249,7 @@ topupOkBtn.onclick = async () => {
     topupModal.style.display = "none";
   } catch (err) {
     console.error("Ошибка пополнения:", err);
-    alert("❌ Пополнение отменено или не удалось");
+    showCustomAlert("❌ Пополнение отменено или не удалось");
   }
 };
 
@@ -261,7 +261,7 @@ const withdrawInput = document.getElementById("withdraw-input");
 
 document.getElementById("withdraw").onclick = () => {
   if (!currentWalletAddress) {
-    alert("Сначала подключите кошелёк");
+    showCustomAlert("Сначала подключите кошелёк");
     return;
   }
   withdrawInput.value = "";
@@ -275,7 +275,7 @@ window.addEventListener("click", e => {
 
 withdrawOkBtn.onclick = async () => {
   const amount = parseFloat(withdrawInput.value);
-  if (isNaN(amount) || amount <= 0) return alert("Некорректная сумма");
+  if (isNaN(amount) || amount <= 0) return showCustomAlert("Некорректная сумма");
   try {
     const res = await fetch(`${SERVER_URL}/api/request-withdraw`, {
       method: "POST",
@@ -284,13 +284,13 @@ withdrawOkBtn.onclick = async () => {
     });
     const data = await res.json();
     if (data.success) {
-      alert("✅ Заявка на вывод принята");
+      showCustomAlert("✅ Заявка на вывод принята");
       withdrawModal.style.display = "none";
     } else {
-      alert("❌ Ошибка: " + data.error);
+      showCustomAlert("❌ Ошибка: " + data.error);
     }
   } catch (err) {
-    alert("❌ Ошибка при выводе: " + err.message);
+    showCustomAlert("❌ Ошибка при выводе: " + err.message);
   }
 };
 
@@ -465,7 +465,7 @@ function checkWin9(ticket) {
 
 async function buyTicket9() {
   if (!currentWalletAddress) {
-    alert("Сначала подключите кошелёк!");
+    showCustomAlert("Сначала подключите кошелёк!");
     return;
   }
   try {
@@ -485,7 +485,7 @@ async function buyTicket9() {
     await fetchBalance(currentWalletAddress);
   } catch (err) {
     console.error("Ошибка покупки (9 слотов):", err);
-    alert(`Ошибка: ${err.message}`);
+    showCustomAlert(`Ошибка: ${err.message}`);
     status.textContent = "❌ Покупка не удалась.";
   } finally {
     buyBtn9.disabled = false;
