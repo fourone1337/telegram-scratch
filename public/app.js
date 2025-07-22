@@ -115,7 +115,7 @@ if (referrer && referrer !== friendly) {
 }
 });
 
-// === Кнопка копирования реферальной ссылки ===
+// ✅ Кнопка копирования реферальной ссылки ===
 const copyRefBtn = document.getElementById("copy-ref");
 copyRefBtn.onclick = () => {
   if (!currentWalletAddress) {
@@ -142,7 +142,7 @@ copyRefBtn.onclick = () => {
 };
 
 
-// === Универсальная покупка билета ===
+// ✅ Универсальная покупка билета ===
 async function buyTicket() {
   if (!currentWalletAddress) {
     showCustomAlert("Сначала подключите кошелёк!");
@@ -177,9 +177,25 @@ async function buyTicket() {
   }
 }
 
-// === Кнопки покупки ===
-buyBtn.onclick = buyTicket;
-buyAgainBtn.onclick = buyTicket;
+// ✅ Кнопки покупки ===
+// При нажатии просто открываем модалку, покупку не совершаем
+buyBtn.onclick = () => {
+  if (!currentWalletAddress) {
+    showCustomAlert("Сначала подключите кошелёк!");
+    return;
+  }
+  // показываем модалку с игровым полем (пустым)
+  document.getElementById("ticket-modal").style.display = "block";
+};
+
+buyBtn9.onclick = () => {
+  if (!currentWalletAddress) {
+    showCustomAlert("Сначала подключите кошелёк!");
+    return;
+  }
+  // показываем модалку для 9 слотов (пустую)
+  document.getElementById("ticket-modal-9").style.display = "block";
+};
 
 // === Кнопка бесплатного билета ===
 const freeTicketBtn = document.getElementById("free-ticket");
