@@ -178,26 +178,53 @@ async function buyTicket() {
 }
 
 // ✅ Кнопки покупки ===
-// При нажатии просто открываем модалку, покупку не совершаем
+// ======= Новые обработчики с учётом buy-modal-6 и buy-modal-9 =======
+
+// кнопка "Купить билет 6 слотов" на главном экране
 buyBtn.onclick = () => {
   if (!currentWalletAddress) {
     showCustomAlert("Сначала подключите кошелёк!");
     return;
   }
-  // показываем модалку с игровым полем (пустым)
-  document.getElementById("ticket-modal").style.display = "block";
+  // открываем модалку подтверждения
+  document.getElementById("buy-modal-6").style.display = "block";
 };
 
+// кнопка "Купить" внутри buy-modal-6
+document.getElementById("confirm-buy-6").onclick = () => {
+  document.getElementById("buy-modal-6").style.display = "none";
+  buyTicket(); // покупаем билет
+};
+
+// кнопка "закрыть" в модалке buy-modal-6
+document.getElementById("close-buy-modal-6").onclick = () => {
+  document.getElementById("buy-modal-6").style.display = "none";
+};
+
+
+// кнопка "Купить билет 9 слотов" на главном экране
 buyBtn9.onclick = () => {
   if (!currentWalletAddress) {
     showCustomAlert("Сначала подключите кошелёк!");
     return;
   }
-  // показываем модалку для 9 слотов (пустую)
-  document.getElementById("ticket-modal-9").style.display = "block";
+  // открываем модалку подтверждения
+  document.getElementById("buy-modal-9").style.display = "block";
 };
 
-// === Кнопка бесплатного билета ===
+// кнопка "Купить" внутри buy-modal-9
+document.getElementById("confirm-buy-9").onclick = () => {
+  document.getElementById("buy-modal-9").style.display = "none";
+  buyTicket9(); // покупаем билет
+};
+
+// кнопка "закрыть" в модалке buy-modal-9
+document.getElementById("close-buy-modal-9").onclick = () => {
+  document.getElementById("buy-modal-9").style.display = "none";
+};
+
+
+// ✅ Кнопка бесплатного билета ===
 const freeTicketBtn = document.getElementById("free-ticket");
 freeTicketBtn.onclick = async () => {
   if (!currentWalletAddress) return showCustomAlert("Сначала подключите кошелёк!");
