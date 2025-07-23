@@ -95,11 +95,11 @@ button:disabled {
 /* Общее поле билета (6 и 9) */
 #ticket-container, #ticket-container-9 {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-gap: 16px;
+  grid-template-columns: repeat(3, 60px); /* было 100px */
+  grid-gap: 10px;                         /* было 16px */
   justify-content: center;
   margin: 30px auto;
-  padding: 20px;
+  padding: 15px;
   background: linear-gradient(135deg, #ffe082, #ffffff);
   border-radius: 20px;
   box-shadow: 0 0 15px rgba(0,0,0,0.08);
@@ -110,12 +110,12 @@ button:disabled {
 
 /* Ячейки поля */
 #ticket-container div, #ticket-container-9 div {
-  width: 100px;
-  height: 100px;
+  width: 60px;      /* было 100px */
+  height: 60px;     /* было 100px */
+  font-size: 24px;  /* было 40px */
   background: linear-gradient(135deg, #ffffff, #e3f2fd);
   border: 2px solid #007bff;
-  border-radius: 16px;
-  font-size: 40px;
+  border-radius: 12px; /* можно чуть уменьшить радиус */
   color: #007bff;
   display: flex;
   align-items: center;
@@ -232,17 +232,17 @@ button:disabled {
 }
 
 .bonus-cell {
-  width: 60px;
-  height: 60px;
-  margin: 5px;
+  width: 50px;      /* было 60px */
+  height: 50px;     /* было 60px */
+  font-size: 20px;  /* было 24px */
+  margin: 4px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
   background: gold;
   border: 2px dashed #b8860b;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 24px;
 }
 .bonus-cell.opened-bonus {
   background: #ffe066;
