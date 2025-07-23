@@ -162,6 +162,11 @@ function checkWin(ticket,state,container,statusPrefix=""){
 
 // === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
+  // генерируем пустое поле (заглушка до покупки)
+  state6.ticket = generateTicket(6);
+  state6.opened = []; // пока ничего не открыто
+  renderTicket(state6.ticket, state6, ticketContainer);
+  
   ticketModal.style.display = "block";
   buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 };
@@ -191,9 +196,15 @@ closeTicketBtn.onclick = ()=>ticketModal.style.display="none";
 
 // === Логика модалки 9 слотов ===
 buyBtn9.onclick = () => {
+  // генерируем пустое поле (заглушка до покупки)
+  state9.ticket = generateTicket(9);
+  state9.opened = [];
+  renderTicket(state9.ticket, state9, ticketContainer9, "(9 слотов) ");
+  
   ticketModal9.style.display = "block";
   buyAgainBtn9.textContent = state9.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 };
+
 async function handleBuyInModal9(){
   if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
   try{
