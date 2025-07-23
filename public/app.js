@@ -180,7 +180,7 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
       state.opened.push(idx);
       cell.textContent = emoji;
       cell.classList.add("selected", "opened");
-      if (state.opened.length === 3) checkWin(ticket, state, container, statusPrefix);
+      if (state.opened.length === 4) checkWin(ticket, state, container, statusPrefix);
     };
     container.appendChild(cell);
   });
@@ -202,33 +202,48 @@ container.appendChild(bonusCell);
 
 
 function checkWin(ticket, state, container, statusPrefix = "") {
-  const openedEmojis = state.opened.map(i => ticket[i]);
-  const allSame = openedEmojis.every(e => e === openedEmojis[0]);
+  console.log("🎯 checkWin вызван! Открытые индексы:", state.opened);
 
-  if (allSame) {
-    const symbol = openedEmojis[0];
-    let reward = emojiRewards[symbol] || 0;
+  const openedEmojis = state.opened.map(i => ticket[i]);
+  console.log("🧐 Открытые эмодзи:", openedEmojis);
+
+  // Подсчитаем сколько каких эмодзи
+  const counts = {};
+  for (let emoji of openedEmojis) {
+    counts[emoji] = (counts[emoji] || 0) + 1;
+  }
+
+  // Проверим, есть ли хотя бы три одинаковых
+  let winEmoji = null;
+  for (let [emoji, count] of Object.entries(counts)) {
+    if (count >= 3) {
+      winEmoji = emoji;
+      break;
+    }
+  }
+
+  if (winEmoji) {
+    let reward = emojiRewards[winEmoji] || 0;
 
     // 🎁 проверяем бонус
     if (state.bonusOpened && state.bonus && state.bonus > 1) {
       reward *= state.bonus;
-      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${symbol} (Бонус x${state.bonus})!`;
+      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${winEmoji} (Бонус x${state.bonus})!`;
     } else {
-      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${symbol}!`;
+      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${winEmoji}!`;
     }
-                   // 👇 ВСТАВЬ ЭТОТ ЛОГ 👇
-  console.log("📤 Отправляем выигрыш на сервер:", {
-    address: currentWalletAddress,
-    emojis: openedEmojis,
-    reward: reward
-  });
 
+    console.log("📤 Отправляем выигрыш на сервер:", {
+      address: currentWalletAddress,
+      emojis: openedEmojis,
+      reward: reward
+    });
     sendWinToServer(currentWalletAddress, openedEmojis, reward);
   } else {
     status.textContent = `${statusPrefix}😞 К сожалению, вы проиграли.`;
   }
 
-  // открываем все оставшиеся
+  // Открываем все оставшиеся ячейки
   container.querySelectorAll("div").forEach((cell, i) => {
     if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
       cell.textContent = ticket[i];
@@ -236,10 +251,9 @@ function checkWin(ticket, state, container, statusPrefix = "") {
     }
   });
 
-  // отмечаем все как открытые
+  // Отмечаем все как открытые
   state.opened = ticket.map((_, i) => i);
 }
-
 
 // === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
