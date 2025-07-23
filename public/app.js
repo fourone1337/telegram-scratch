@@ -230,13 +230,13 @@ function checkWin(ticket, state, container, statusPrefix = "") {
   const openedEmojis = state.opened.map(i => ticket[i]);
   console.log("🧐 Открытые эмодзи:", openedEmojis);
 
-  // Подсчитаем сколько каких эмодзи
+  // Подсчёт одинаковых символов
   const counts = {};
   for (let emoji of openedEmojis) {
     counts[emoji] = (counts[emoji] || 0) + 1;
   }
 
-  // Проверим, есть ли хотя бы три одинаковых
+  // Проверка на выигрыш (≥3 одинаковых)
   let winEmoji = null;
   for (let [emoji, count] of Object.entries(counts)) {
     if (count >= 3) {
@@ -248,7 +248,6 @@ function checkWin(ticket, state, container, statusPrefix = "") {
   if (winEmoji) {
     let reward = emojiRewards[winEmoji] || 0;
 
-    // 🎁 проверяем бонус
     if (state.bonusOpened && state.bonus && state.bonus > 1) {
       reward *= state.bonus;
       status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${winEmoji} (Бонус x${state.bonus})!`;
@@ -266,7 +265,7 @@ function checkWin(ticket, state, container, statusPrefix = "") {
     status.textContent = `${statusPrefix}😞 К сожалению, вы проиграли.`;
   }
 
-  // Открываем все оставшиеся ячейки
+  // 👇 открываем все оставшиеся ячейки только если бонус открыт
   if (state.bonusOpened) {
     container.querySelectorAll("div").forEach((cell, i) => {
       if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
@@ -275,7 +274,7 @@ function checkWin(ticket, state, container, statusPrefix = "") {
       }
     });
   } else {
-    console.log("⚠️ Бонус ещё не открыт, не раскрываем остальные поля.");
+    console.log("⚠️ Бонус ещё не открыт — оставшиеся поля скрыты");
   }
 }
 
