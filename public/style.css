@@ -226,3 +226,7 @@ button:disabled {
   margin-top: 15px;
 }
 
+#free-ticket.no-free {
+  opacity: 0.5;
+  pointer-events: none;
+}

@@ -68,6 +68,17 @@ window.addEventListener("click", (e) => {
 });
 
 
+// === Функция обновления визуала кнопки бесплатного билета ===
+function updateFreeTicketVisual(remaining) {
+  if (remaining > 0) {
+    freeTicketBtn.disabled = false;
+    freeTicketBtn.classList.remove("no-free");
+  } else {
+    freeTicketBtn.disabled = true;
+    freeTicketBtn.classList.add("no-free");
+  }
+}
+
 // === Баланс ===
 function updateBalanceText(balance,isError=false){
   document.getElementById("balance-text").textContent = isError ? "Ошибка" : `${balance.toFixed(2)} TON`;
@@ -92,6 +103,22 @@ async function spendBalance(address,amount){
   const data = await res.json();
   if(!res.ok) throw new Error(data.error||"Ошибка списания");
   return data;
+}
+
+// === Проверка количества бесплатных билетов ===
+async function checkFreeTickets(address) {
+  try {
+    const res = await fetch(`${SERVER_URL}/api/free-tickets/${address}`);
+    const data = await res.json();
+    if (res.ok && typeof data.remaining === 'number') {
+      updateFreeTicketVisual(data.remaining);
+    } else {
+      updateFreeTicketVisual(0);
+    }
+  } catch (e) {
+    console.error("Ошибка проверки бесплатных билетов:", e);
+    updateFreeTicketVisual(0);
+  }
 }
 
 // === Генерация и рендер билета ===
@@ -192,9 +219,6 @@ buyAgainBtn9.onclick = handleBuyInModal9;
 closeTicketBtn9.onclick = ()=>ticketModal9.style.display="none";
 
 // === Бесплатный билет ===
-function updateFreeTicketState() {
-  freeTicketBtn.disabled = !currentWalletAddress;
-}
 freeTicketBtn.onclick = async () => {
   if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
   try{
@@ -207,6 +231,7 @@ freeTicketBtn.onclick = async () => {
     });
     const data = await res.json();
     if(!res.ok){
+      updateFreeTicketVisual(0);
       showCustomAlert(`❌ ${data.error || "Нет доступных бесплатных билетов."}`);
       status.textContent="❌ Бесплатный билет недоступен.";
     }else{
@@ -216,6 +241,7 @@ freeTicketBtn.onclick = async () => {
       renderTicket(state6.ticket,state6,ticketContainer);
       ticketModal.style.display = "block";
       status.textContent="Выберите 3 ячейки, чтобы открыть";
+      updateFreeTicketVisual(data.remaining);
       showCustomAlert(`✅ Бесплатный билет использован! Осталось: ${data.remaining}`);
     }
   }catch(err){
@@ -331,18 +357,13 @@ tonConnectUI.onStatusChange(wallet=>{
   buyBtn9.disabled=!enabled;
   document.getElementById("topup").disabled=!enabled;
   document.getElementById("withdraw").disabled=!enabled;
-  currentWalletAddress=friendly||null;
-  updateFreeTicketState();
-  status.textContent=enabled?"Нажмите «Купить билет», чтобы начать игру!":"Подключите кошелёк для начала игры.";
-  if(friendly) fetchBalance(friendly);
 
-  const referrer=localStorage.getItem('referrer');
-  if(referrer && referrer!==friendly){
-    fetch(`${SERVER_URL}/api/register-referral`,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({referrer,friend:friendly})
-    }).then(r=>r.json()).then(console.log).catch(console.error);
+  currentWalletAddress=friendly||null;
+  status.textContent=enabled?"Нажмите «Купить билет», чтобы начать игру!":"Подключите кошелёк для начала игры.";
+
+  if(friendly){
+    fetchBalance(friendly);
+    checkFreeTickets(friendly); // 🔥 проверяем доступные бесплатные билеты
   }
 });
 
