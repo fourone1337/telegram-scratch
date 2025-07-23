@@ -2,6 +2,8 @@
 const status = document.getElementById("status");
 const SERVER_URL = "https://scratch-lottery.ru";
 let currentWalletAddress = null;
+let isTicketActive6 = false;
+let isTicketActive9 = false;
 
 // === 6 слотов ===
 const buyBtn = document.getElementById("buy");
@@ -125,18 +127,20 @@ async function checkFreeTickets(address) {
 function generateTicket(slotCount){
   return Array.from({length:slotCount},()=>emojis[Math.floor(Math.random()*emojis.length)]);
 }
-function renderTicket(ticket,state,container,statusPrefix=""){
-  container.innerHTML="";
-  ticket.forEach((emoji,idx)=>{
-    const cell=document.createElement("div");
-    cell.textContent = state.opened.includes(idx)?emoji:"❓";
-    if(state.opened.includes(idx)) cell.classList.add("opened");
-    cell.onclick=()=>{
-      if(state.opened.length>=3||state.opened.includes(idx))return;
+function renderTicket(ticket, state, container, statusPrefix = "", isActive = true) {
+  container.innerHTML = "";
+  ticket.forEach((emoji, idx) => {
+    const cell = document.createElement("div");
+    cell.textContent = state.opened.includes(idx) ? emoji : "❓";
+    if (state.opened.includes(idx)) cell.classList.add("opened");
+
+    cell.onclick = () => {
+      if (!isActive) return; // 🚫 если поле не активно — игнорируем клики
+      if (state.opened.length >= 3 || state.opened.includes(idx)) return;
       state.opened.push(idx);
-      cell.textContent=emoji;
-      cell.classList.add("selected","opened");
-      if(state.opened.length===3) checkWin(ticket,state,container,statusPrefix);
+      cell.textContent = emoji;
+      cell.classList.add("selected", "opened");
+      if (state.opened.length === 3) checkWin(ticket, state, container, statusPrefix);
     };
     container.appendChild(cell);
   });
@@ -162,10 +166,10 @@ function checkWin(ticket,state,container,statusPrefix=""){
 
 // === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
-  // генерируем пустое поле (заглушка до покупки)
+  isTicketActive6 = false; // 🚫 пока не куплен
   state6.ticket = generateTicket(6);
-  state6.opened = []; // пока ничего не открыто
-  renderTicket(state6.ticket, state6, ticketContainer);
+  state6.opened = [];
+  renderTicket(state6.ticket, state6, ticketContainer, "", false); // передаем false
   
   ticketModal.style.display = "block";
   buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
@@ -177,10 +181,10 @@ async function handleBuyInModal6(){
     buyAgainBtn.disabled=true;
     await spendBalance(currentWalletAddress,0.05);
     state6.ticket = generateTicket(6);
-    state6.opened=[];
+    state6.opened = [];
     state6.boughtCount++;
-    status.textContent="Выберите 3 ячейки, чтобы открыть";
-    renderTicket(state6.ticket,state6,ticketContainer);
+    isTicketActive6 = true; // ✅ теперь можно кликать
+    renderTicket(state6.ticket, state6, ticketContainer, "", true);
     buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
     await fetchBalance(currentWalletAddress);
   }catch(err){
@@ -196,15 +200,14 @@ closeTicketBtn.onclick = ()=>ticketModal.style.display="none";
 
 // === Логика модалки 9 слотов ===
 buyBtn9.onclick = () => {
-  // генерируем пустое поле (заглушка до покупки)
+  isTicketActive9 = false; // 🚫 пока не куплен
   state9.ticket = generateTicket(9);
   state9.opened = [];
-  renderTicket(state9.ticket, state9, ticketContainer9, "(9 слотов) ");
+  renderTicket(state9.ticket, state9, ticketContainer9, "(9 слотов) ", false);
   
   ticketModal9.style.display = "block";
   buyAgainBtn9.textContent = state9.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 };
-
 async function handleBuyInModal9(){
   if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
   try{
@@ -212,10 +215,10 @@ async function handleBuyInModal9(){
     buyAgainBtn9.disabled=true;
     await spendBalance(currentWalletAddress,0.1);
     state9.ticket = generateTicket(9);
-    state9.opened=[];
+    state9.opened = [];
     state9.boughtCount++;
-    status.textContent="Выберите 3 ячейки, чтобы открыть";
-    renderTicket(state9.ticket,state9,ticketContainer9,"(9 слотов) ");
+    isTicketActive9 = true; // ✅ теперь можно кликать
+    renderTicket(state9.ticket, state9, ticketContainer9, "(9 слотов) ", true);
     buyAgainBtn9.textContent = state9.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
     await fetchBalance(currentWalletAddress);
   }catch(err){
