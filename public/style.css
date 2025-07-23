@@ -243,6 +243,9 @@ button:disabled {
   border: 2px dashed #b8860b;
   border-radius: 6px;
   cursor: pointer;
+    /* 👇 вот эти две строки указывают положение */
+  grid-column: 2; /* второй столбец */
+  grid-row: 3;    /* третья строка */
 }
 .bonus-cell.opened-bonus {
   background: #ffe066;

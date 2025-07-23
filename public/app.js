@@ -187,15 +187,13 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
   const bonusCell = document.createElement("div");
   bonusCell.classList.add("bonus-cell");
   bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
-  bonusCell.onclick = () => {
-    if (state.bonusOpened) return;
-    state.bonusOpened = true;
-    bonusCell.textContent = `x${state.bonus}`;
-    bonusCell.classList.add("opened-bonus");
-  };
-  container.appendChild(bonusCell);
-}
-
+    if (!isActive) return;
+  if (state.bonusOpened) return;
+  state.bonusOpened = true;
+  bonusCell.textContent = `x${state.bonus}`;
+  bonusCell.classList.add("opened-bonus");
+};
+container.appendChild(bonusCell);
 
 function checkWin(ticket, state, container, statusPrefix = "") {
   const openedEmojis = state.opened.map(i => ticket[i]);
