@@ -216,6 +216,12 @@ function checkWin(ticket, state, container, statusPrefix = "") {
     } else {
       status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${symbol}!`;
     }
+                   // 👇 ВСТАВЬ ЭТОТ ЛОГ 👇
+  console.log("📤 Отправляем выигрыш на сервер:", {
+    address: currentWalletAddress,
+    emojis: openedEmojis,
+    reward: reward
+  });
 
     sendWinToServer(currentWalletAddress, openedEmojis, reward);
   } else {
