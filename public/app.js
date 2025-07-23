@@ -112,8 +112,10 @@ async function checkFreeTickets(address) {
   try {
     const res = await fetch(`${SERVER_URL}/api/free-tickets/${address}`);
     const data = await res.json();
-    if (res.ok && typeof data.remaining === 'number') {
-      updateFreeTicketVisual(data.remaining);
+    console.log("Ответ по бесплатным билетам:", data); // можно удалить после теста
+
+    if (res.ok && typeof data.freeTickets === 'number') {
+      updateFreeTicketVisual(data.freeTickets); // ✅ используем freeTickets
     } else {
       updateFreeTicketVisual(0);
     }
@@ -122,7 +124,6 @@ async function checkFreeTickets(address) {
     updateFreeTicketVisual(0);
   }
 }
-
 // === Генерация и рендер билета ===
 function generateTicket(slotCount){
   return Array.from({length:slotCount},()=>emojis[Math.floor(Math.random()*emojis.length)]);
