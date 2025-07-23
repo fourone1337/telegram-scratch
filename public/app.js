@@ -183,6 +183,7 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
       if (state.opened.length === 4) checkWin(ticket, state, container, statusPrefix);
     };
     container.appendChild(cell);
+
   });
 
   // === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
@@ -219,6 +220,9 @@ bonusCell.onclick = () => {
   }
 };
 
+// ✅ Закрываем renderTicket
+container.appendChild(bonusCell);
+} // 🔥 <-- вот эта скобка нужна, чтобы закрыть renderTicket
 
 function checkWin(ticket, state, container, statusPrefix = "") {
   console.log("🎯 checkWin вызван! Открытые индексы:", state.opened);
@@ -263,15 +267,16 @@ function checkWin(ticket, state, container, statusPrefix = "") {
   }
 
   // Открываем все оставшиеся ячейки
-if (state.bonusOpened) {
-  container.querySelectorAll("div").forEach((cell, i) => {
-    if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
-      cell.textContent = ticket[i];
-      cell.classList.add("opened");
-    }
-  });
-} else {
-  console.log("⚠️ Бонус ещё не открыт, не раскрываем остальные поля.");
+  if (state.bonusOpened) {
+    container.querySelectorAll("div").forEach((cell, i) => {
+      if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
+        cell.textContent = ticket[i];
+        cell.classList.add("opened");
+      }
+    });
+  } else {
+    console.log("⚠️ Бонус ещё не открыт, не раскрываем остальные поля.");
+  }
 }
 
 // === Логика модалки 6 слотов ===
