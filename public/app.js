@@ -289,12 +289,23 @@ buyBtn.onclick = () => {
   ticketModal.style.display = "block";
   buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 };
-async function handleBuyInModal6(){
-  if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
-  try{
+async function handleBuyInModal6(){ 
+  // 🔥 Проверка: запрещаем покупать новый билет, если текущий ещё не завершён
+  if (state6.ticket && (state6.opened.length < 4 || !state6.bonusOpened)) {
+    showCustomAlert("❌ Сначала откройте 4 поля и бонус, прежде чем покупать новый билет!");
+    return;
+  }
+
+  if(!currentWalletAddress){ 
+    showCustomAlert("Сначала подключите кошелёк!"); 
+    return; 
+  }
+
+  try {
     status.textContent="⏳ Проверяем баланс...";
     buyAgainBtn.disabled=true;
     await spendBalance(currentWalletAddress,0.05);
+
     state6.ticket = generateTicket(6);
     state6.opened = [];
     state6.boughtCount++;
@@ -304,22 +315,23 @@ async function handleBuyInModal6(){
 
     status.textContent = "Выберите 4 ячейки, чтобы открыть";
     renderTicket(state6.ticket, state6, ticketContainer, "", true);
-    //===
 
     isTicketActive6 = true; // ✅ теперь можно кликать
     renderTicket(state6.ticket, state6, ticketContainer, "", true);
     buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
     await fetchBalance(currentWalletAddress);
-  }catch(err){
+  } catch(err) {
     console.error("Ошибка покупки:",err);
     showCustomAlert(`Ошибка: ${err.message}`);
     status.textContent="❌ Покупка не удалась.";
-  }finally{
+  } finally {
     buyAgainBtn.disabled=false;
   }
 }
+
 buyAgainBtn.onclick = handleBuyInModal6;
 closeTicketBtn.onclick = ()=>ticketModal.style.display="none";
+
 
 // === Логика модалки 9 слотов ===
 buyBtn9.onclick = () => {
