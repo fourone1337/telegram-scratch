@@ -3,19 +3,22 @@ const status = document.getElementById("status");
 const SERVER_URL = "https://scratch-lottery.ru";
 let currentWalletAddress = null;
 
-// === 6 слотов элементы ===
+// === 6 слотов ===
 const buyBtn = document.getElementById("buy");
 const buyAgainBtn = document.getElementById("buy-again");
 const closeTicketBtn = document.getElementById("close-ticket");
 const ticketModal = document.getElementById("ticket-modal");
 const ticketContainer = document.getElementById("ticket-container");
 
-// === 9 слотов элементы ===
+// === 9 слотов ===
 const buyBtn9 = document.getElementById("buy9");
 const buyAgainBtn9 = document.getElementById("buy-again-9");
 const closeTicketBtn9 = document.getElementById("close-ticket-9");
 const ticketModal9 = document.getElementById("ticket-modal-9");
 const ticketContainer9 = document.getElementById("ticket-container-9");
+
+// === Бесплатный билет ===
+const freeTicketBtn = document.getElementById("free-ticket");
 
 // === Универсальные данные и состояния ===
 const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
@@ -146,7 +149,43 @@ async function handleBuyInModal9(){
 buyAgainBtn9.onclick = handleBuyInModal9;
 closeTicketBtn9.onclick = ()=>ticketModal9.style.display="none";
 
-// Закрытие модалок кликом вне области
+// === Бесплатный билет ===
+function updateFreeTicketState() {
+  freeTicketBtn.disabled = !currentWalletAddress;
+}
+freeTicketBtn.onclick = async () => {
+  if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
+  try{
+    status.textContent="⏳ Проверяем бесплатные билеты...";
+    freeTicketBtn.disabled=true;
+    const res = await fetch(`${SERVER_URL}/api/use-free-ticket`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({address:currentWalletAddress})
+    });
+    const data = await res.json();
+    if(!res.ok){
+      showCustomAlert(`❌ ${data.error || "Нет доступных бесплатных билетов."}`);
+      status.textContent="❌ Бесплатный билет недоступен.";
+    }else{
+      state6.ticket = generateTicket(6);
+      state6.opened = [];
+      state6.boughtCount++;
+      renderTicket(state6.ticket,state6,ticketContainer);
+      ticketModal.style.display = "block";
+      status.textContent="Выберите 3 ячейки, чтобы открыть";
+      showCustomAlert(`✅ Бесплатный билет использован! Осталось: ${data.remaining}`);
+    }
+  }catch(err){
+    console.error("Ошибка бесплатного билета:",err);
+    showCustomAlert(`❌ Ошибка: ${err.message}`);
+    status.textContent="❌ Ошибка при получении бесплатного билета.";
+  }finally{
+    freeTicketBtn.disabled=false;
+  }
+};
+
+// === Закрытие модалок кликом вне области
 window.addEventListener("click",e=>{
   if(e.target===ticketModal) ticketModal.style.display="none";
   if(e.target===ticketModal9) ticketModal9.style.display="none";
@@ -251,6 +290,7 @@ tonConnectUI.onStatusChange(wallet=>{
   document.getElementById("topup").disabled=!enabled;
   document.getElementById("withdraw").disabled=!enabled;
   currentWalletAddress=friendly||null;
+  updateFreeTicketState();
   status.textContent=enabled?"Нажмите «Купить билет», чтобы начать игру!":"Подключите кошелёк для начала игры.";
   if(friendly) fetchBalance(friendly);
 
