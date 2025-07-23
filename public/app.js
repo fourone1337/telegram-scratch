@@ -207,12 +207,12 @@ bonusCell.onclick = () => {
   });
 
   // 👉 Теперь открываем оставшиеся поля
-  allCells.forEach((cell, i) => {
+/*  allCells.forEach((cell, i) => {
     if (!state.opened.includes(i)) {
       cell.textContent = ticket[i];
       cell.classList.add("opened");
     }
-  });
+  });*/
 
   // Если уже выбрано 4 — проверяем выигрыш
   if (state.opened.length === 4) {
