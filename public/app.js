@@ -190,15 +190,34 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
 bonusCell.classList.add("bonus-cell");
 bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
 bonusCell.onclick = () => {
-  // 🚫 не даём открывать бонус, если билет не активен
-  if (!isActive) return;
   if (state.bonusOpened) return;
+
   state.bonusOpened = true;
   bonusCell.textContent = `x${state.bonus}`;
   bonusCell.classList.add("opened-bonus");
+
+  // Раскрываем все выбранные
+  const allCells = container.querySelectorAll("div:not(.bonus-cell)");
+  state.opened.forEach(i => {
+    const c = allCells[i];
+    c.textContent = ticket[i];
+    c.classList.remove("pending");
+    c.classList.add("opened");
+  });
+
+  // 👉 Теперь открываем оставшиеся поля
+  allCells.forEach((cell, i) => {
+    if (!state.opened.includes(i)) {
+      cell.textContent = ticket[i];
+      cell.classList.add("opened");
+    }
+  });
+
+  // Если уже выбрано 4 — проверяем выигрыш
+  if (state.opened.length === 4) {
+    checkWin(ticket, state, container, statusPrefix);
+  }
 };
-container.appendChild(bonusCell);
-}
 
 
 function checkWin(ticket, state, container, statusPrefix = "") {
@@ -244,15 +263,15 @@ function checkWin(ticket, state, container, statusPrefix = "") {
   }
 
   // Открываем все оставшиеся ячейки
+if (state.bonusOpened) {
   container.querySelectorAll("div").forEach((cell, i) => {
     if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
       cell.textContent = ticket[i];
       cell.classList.add("opened");
     }
   });
-
-  // Отмечаем все как открытые
-  state.opened = ticket.map((_, i) => i);
+} else {
+  console.log("⚠️ Бонус ещё не открыт, не раскрываем остальные поля.");
 }
 
 // === Логика модалки 6 слотов ===
