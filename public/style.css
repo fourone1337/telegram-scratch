@@ -230,3 +230,21 @@ button:disabled {
   opacity: 0.5;
   pointer-events: none;
 }
+
+.bonus-cell {
+  width: 60px;
+  height: 60px;
+  margin: 5px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: gold;
+  border: 2px dashed #b8860b;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 24px;
+}
+.bonus-cell.opened-bonus {
+  background: #ffe066;
+  border-style: solid;
+}

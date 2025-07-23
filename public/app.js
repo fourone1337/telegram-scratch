@@ -25,8 +25,9 @@ const freeTicketBtn = document.getElementById("free-ticket");
 // === Универсальные данные и состояния ===
 const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
 const emojiRewards = { "🍒":5, "⭐️":10, "🍋":15, "🔔":20, "7️⃣":25, "💎":30 };
-const state6 = { ticket:null, opened:[], boughtCount:0 };
-const state9 = { ticket:null, opened:[], boughtCount:0 };
+const state6 = { ticket: null, opened: [], boughtCount: 0, bonus: null, bonusOpened: false };
+const state9 = { ticket: null, opened: [], boughtCount: 0, bonus: null, bonusOpened: false };
+const bonusValues = [1, 1, 1, 2, 1, 4]; // больше единиц, чтобы шанс бонуса был меньше
 
 // === Модалка с условиями ===
 const termsModal = document.getElementById("terms-modal");
@@ -172,7 +173,7 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
     if (state.opened.includes(idx)) cell.classList.add("opened");
 
     cell.onclick = () => {
-      if (!isActive) return; // 🚫 если поле не активно — игнорируем клики
+      if (!isActive) return; 
       if (state.opened.length >= 4 || state.opened.includes(idx)) return;
       state.opened.push(idx);
       cell.textContent = emoji;
@@ -181,28 +182,54 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
     };
     container.appendChild(cell);
   });
-}
-function checkWin(ticket,state,container,statusPrefix=""){
-  const openedEmojis = state.opened.map(i=>ticket[i]);
-  const allSame = openedEmojis.every(e=>e===openedEmojis[0]);
-  if (allSame) {
-  const symbol = openedEmojis[0];
-  const reward = emojiRewards[symbol] || 0;
-  status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
 
-  // 🔥 Отправляем выигрыш на сервер
-  sendWinToServer(currentWalletAddress, openedEmojis, reward);
-} else {
-  status.textContent = "😞 К сожалению, вы проиграли.";
+  // === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
+  const bonusCell = document.createElement("div");
+  bonusCell.classList.add("bonus-cell");
+  bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
+  bonusCell.onclick = () => {
+    if (state.bonusOpened) return;
+    state.bonusOpened = true;
+    bonusCell.textContent = `x${state.bonus}`;
+    bonusCell.classList.add("opened-bonus");
+  };
+  container.appendChild(bonusCell);
 }
-  ticket.forEach((emoji,i)=>{
-    if(!state.opened.includes(i)){
-      container.children[i].textContent = emoji;
-      container.children[i].classList.add("opened");
+
+
+function checkWin(ticket, state, container, statusPrefix = "") {
+  const openedEmojis = state.opened.map(i => ticket[i]);
+  const allSame = openedEmojis.every(e => e === openedEmojis[0]);
+
+  if (allSame) {
+    const symbol = openedEmojis[0];
+    let reward = emojiRewards[symbol] || 0;
+
+    // 🎁 проверяем бонус
+    if (state.bonusOpened && state.bonus && state.bonus > 1) {
+      reward *= state.bonus;
+      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${symbol} (Бонус x${state.bonus})!`;
+    } else {
+      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${symbol}!`;
+    }
+
+    sendWinToServer(currentWalletAddress, openedEmojis, reward);
+  } else {
+    status.textContent = `${statusPrefix}😞 К сожалению, вы проиграли.`;
+  }
+
+  // открываем все оставшиеся
+  container.querySelectorAll("div").forEach((cell, i) => {
+    if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
+      cell.textContent = ticket[i];
+      cell.classList.add("opened");
     }
   });
-  state.opened = ticket.map((_,i)=>i);
+
+  // отмечаем все как открытые
+  state.opened = ticket.map((_, i) => i);
 }
+
 
 // === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
@@ -223,6 +250,14 @@ async function handleBuyInModal6(){
     state6.ticket = generateTicket(6);
     state6.opened = [];
     state6.boughtCount++;
+    //===Бонус
+    state6.bonus = bonusValues[Math.floor(Math.random() * bonusValues.length)];
+    state6.bonusOpened = false;
+
+    status.textContent = "Выберите 4 ячейки, чтобы открыть";
+    renderTicket(state6.ticket, state6, ticketContainer, "", true);
+    //===
+
     isTicketActive6 = true; // ✅ теперь можно кликать
     renderTicket(state6.ticket, state6, ticketContainer, "", true);
     buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
@@ -292,7 +327,9 @@ freeTicketBtn.onclick = async () => {
       state6.ticket = generateTicket(6);
       state6.opened = [];
       state6.boughtCount++;
-      renderTicket(state6.ticket,state6,ticketContainer);
+      state6.bonus = bonusValues[Math.floor(Math.random() * bonusValues.length)];
+      state6.bonusOpened = false;
+      renderTicket(state6.ticket, state6, ticketContainer, "", true);
       ticketModal.style.display = "block";
       status.textContent="Выберите 3 ячейки, чтобы открыть";
       updateFreeTicketVisual(data.remaining);
