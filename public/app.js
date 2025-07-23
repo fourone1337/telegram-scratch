@@ -124,11 +124,6 @@ async function spendBalance(address,amount){
 
 // == Отправка выигрыша на сервер
 
-console.log("📤 Отправляем выигрыш", {
-  address: currentWalletAddress,
-  emojis: openedEmojis,
-  reward: reward
-});
 
 async function sendWinToServer(address, emojis, reward) {
   try {
