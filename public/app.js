@@ -24,7 +24,7 @@ const freeTicketBtn = document.getElementById("free-ticket");
 
 // === Универсальные данные и состояния ===
 const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
-const emojiRewards = { "🍒":0.15, "⭐️":0.25, "🍋":0.15, "🔔":0.1, "7️⃣":0.1, "💎":0.4 };
+const emojiRewards = { "🍒":5, "⭐️":10, "🍋":15, "🔔":20, "7️⃣":25, "💎":30 };
 const state6 = { ticket:null, opened:[], boughtCount:0 };
 const state9 = { ticket:null, opened:[], boughtCount:0 };
 
@@ -121,7 +121,27 @@ async function spendBalance(address,amount){
   return data;
 }
 
-
+// == Отправка выигрыша на сервер
+async function sendWinToServer(address, emojis, reward) {
+  try {
+    const res = await fetch(`${SERVER_URL}/api/wins`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        address,
+        emojis,
+        reward,
+        date: new Date().toISOString()
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Ошибка при записи выигрыша");
+    console.log("✅ Выигрыш записан:", data);
+    await fetchBalance(address); // обновляем баланс в реальном времени
+  } catch (e) {
+    console.error("❌ Ошибка при отправке выигрыша:", e);
+  }
+}
 
 // === Проверка количества бесплатных билетов ===
 async function checkFreeTickets(address) {
@@ -165,13 +185,16 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
 function checkWin(ticket,state,container,statusPrefix=""){
   const openedEmojis = state.opened.map(i=>ticket[i]);
   const allSame = openedEmojis.every(e=>e===openedEmojis[0]);
-  if(allSame){
-    const symbol = openedEmojis[0];
-    const reward = emojiRewards[symbol]||0;
-    status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${symbol}!`;
-  }else{
-    status.textContent = `${statusPrefix}😞 К сожалению, вы проиграли.`;
-  }
+  if (allSame) {
+  const symbol = openedEmojis[0];
+  const reward = emojiRewards[symbol] || 0;
+  status.textContent = `🎉 Вы выиграли ${reward} TON за ${symbol}!`;
+
+  // 🔥 Отправляем выигрыш на сервер
+  sendWinToServer(currentWalletAddress, openedEmojis, reward);
+} else {
+  status.textContent = "😞 К сожалению, вы проиграли.";
+}
   ticket.forEach((emoji,i)=>{
     if(!state.opened.includes(i)){
       container.children[i].textContent = emoji;
