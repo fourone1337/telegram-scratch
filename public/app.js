@@ -185,15 +185,19 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
 
   // === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
   const bonusCell = document.createElement("div");
-  bonusCell.classList.add("bonus-cell");
-  bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
-    if (!isActive) return;
+bonusCell.classList.add("bonus-cell");
+bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
+bonusCell.onclick = () => {
+  // 🚫 не даём открывать бонус, если билет не активен
+  if (!isActive) return;
   if (state.bonusOpened) return;
   state.bonusOpened = true;
   bonusCell.textContent = `x${state.bonus}`;
   bonusCell.classList.add("opened-bonus");
 };
 container.appendChild(bonusCell);
+}
+
 
 function checkWin(ticket, state, container, statusPrefix = "") {
   const openedEmojis = state.opened.map(i => ticket[i]);
@@ -327,7 +331,7 @@ freeTicketBtn.onclick = async () => {
       state6.boughtCount++;
       state6.bonus = bonusValues[Math.floor(Math.random() * bonusValues.length)];
       state6.bonusOpened = false;
-      renderTicket(state6.ticket, state6, ticketContainer, "", true);
+    renderTicket(state6.ticket, state6, ticketContainer, "", true);
       ticketModal.style.display = "block";
       status.textContent="Выберите 3 ячейки, чтобы открыть";
       updateFreeTicketVisual(data.remaining);
