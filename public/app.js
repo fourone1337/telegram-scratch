@@ -26,6 +26,48 @@ const emojiRewards = { "🍒":0.15, "⭐️":0.25, "🍋":0.15, "🔔":0.1, "7�
 const state6 = { ticket:null, opened:[], boughtCount:0 };
 const state9 = { ticket:null, opened:[], boughtCount:0 };
 
+// === Модалка с условиями ===
+const termsModal = document.getElementById("terms-modal");
+const termsText = document.getElementById("terms-text");
+const closeTermsBtn = document.getElementById("close-terms");
+const acceptTermsBtn = document.getElementById("accept-terms");
+const disclaimerBtn = document.getElementById("disclaimer-button");
+
+// открыть модалку по кнопке
+disclaimerBtn.onclick = async () => {
+  try {
+    // загружаем текст условий
+    const response = await fetch("terms.txt");
+    if (!response.ok) {
+      throw new Error("Не удалось загрузить условия");
+    }
+    const text = await response.text();
+    termsText.textContent = text;
+  } catch (err) {
+    console.error("Ошибка загрузки условий:", err);
+    termsText.textContent = "⚠ Не удалось загрузить условия.";
+  }
+  termsModal.style.display = "block";
+};
+
+// закрыть по крестику
+closeTermsBtn.onclick = () => {
+  termsModal.style.display = "none";
+};
+
+// закрыть по кнопке «Принять»
+acceptTermsBtn.onclick = () => {
+  termsModal.style.display = "none";
+};
+
+// закрыть по клику вне модалки
+window.addEventListener("click", (e) => {
+  if (e.target === termsModal) {
+    termsModal.style.display = "none";
+  }
+});
+
+
 // === Баланс ===
 function updateBalanceText(balance,isError=false){
   document.getElementById("balance-text").textContent = isError ? "Ошибка" : `${balance.toFixed(2)} TON`;
