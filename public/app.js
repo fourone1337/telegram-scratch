@@ -169,84 +169,21 @@ function generateTicket(slotCount){
 }
 function renderTicket(ticket, state, container, statusPrefix = "", isActive = true) {
   container.innerHTML = "";
-
-  // создаём ячейки с вопросиками
   ticket.forEach((emoji, idx) => {
     const cell = document.createElement("div");
+    cell.textContent = state.opened.includes(idx) ? emoji : "❓";
+    if (state.opened.includes(idx)) cell.classList.add("opened");
 
-    // если уже открыты (например, при повторном рендере) — показываем
-    if (state.opened.includes(idx) && state.bonusOpened) {
-      cell.textContent = emoji;
-      cell.classList.add("opened");
-    } else {
-      cell.textContent = "❓";
-    }
-
-    // обработчик клика по обычным ячейкам
     cell.onclick = () => {
-      if (!isActive) return;
-      if (state.opened.includes(idx) || state.opened.length >= 4) return;
-
-      // добавляем в список выбранных
+      if (!isActive) return; 
+      if (state.opened.length >= 4 || state.opened.includes(idx)) return;
       state.opened.push(idx);
-
-      // до бонуса не открываем содержимое
-      if (state.bonusOpened) {
-        cell.textContent = emoji;
-        cell.classList.add("opened");
-      } else {
-        // показываем, что выбрана, но пока скрыта
-        cell.textContent = "❓";
-        cell.classList.add("pending");
-      }
-
-      // проверяем выигрыш только если бонус уже открыт и выбрано 4
-      if (state.bonusOpened && state.opened.length === 4) {
-        checkWin(ticket, state, container, statusPrefix);
-      }
+      cell.textContent = emoji;
+      cell.classList.add("selected", "opened");
+      if (state.opened.length === 4) checkWin(ticket, state, container, statusPrefix);
     };
-
     container.appendChild(cell);
   });
-
-  // создаём бонусную ячейку
-  const bonusCell = document.createElement("div");
-  bonusCell.classList.add("bonus-cell");
-  bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
-
-  bonusCell.onclick = () => {
-    if (state.bonusOpened) return; // уже открыт
-
-    state.bonusOpened = true;
-    bonusCell.textContent = `x${state.bonus}`;
-    bonusCell.classList.add("opened-bonus");
-
-    // когда бонус открыт — раскрываем все выбранные ячейки
-    const allCells = container.querySelectorAll("div:not(.bonus-cell)");
-    state.opened.forEach(i => {
-      const c = allCells[i];
-      c.textContent = ticket[i];
-      c.classList.remove("pending");
-      c.classList.add("opened");
-    });
-
-    // и раскрываем оставшиеся (которые не открыты)
-    allCells.forEach((c, i) => {
-      if (!state.opened.includes(i)) {
-        c.textContent = ticket[i];
-        c.classList.add("opened");
-      }
-    });
-
-    // если уже выбрано 4 — проверяем выигрыш
-    if (state.opened.length === 4) {
-      checkWin(ticket, state, container, statusPrefix);
-    }
-  };
-
-  container.appendChild(bonusCell);
-}
-
 
   // === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
   const bonusCell = document.createElement("div");
