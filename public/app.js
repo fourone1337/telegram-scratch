@@ -85,17 +85,31 @@ function updateFreeTicketVisual(remaining) {
 function updateBalanceText(balance,isError=false){
   document.getElementById("balance-text").textContent = isError ? "Ошибка" : `${balance.toFixed(2)} TON`;
 }
-async function fetchBalance(address){
-  try{
+async function fetchBalance(address) {
+  try {
     const res = await fetch(`${SERVER_URL}/api/balance/${address}`);
     const data = await res.json();
-    if(!res.ok) throw new Error(data.error||"Ошибка запроса");
+    if (!res.ok) throw new Error(data.error || "Ошибка запроса");
+
     updateBalanceText(data.balance);
-  }catch(err){
-    console.error("Ошибка баланса:",err);
-    updateBalanceText(0,true);
+    updateModalBalances(data.balance); // 🔥 добавляем вызов
+  } catch (err) {
+    console.error("Ошибка баланса:", err);
+    updateBalanceText(0, true);
+    updateModalBalances(0, true);
   }
 }
+//==Обновление баланса в модалке
+function updateModalBalances(balance, isError = false) {
+  const text = isError ? "Ошибка" : `${balance.toFixed(2)} TON`;
+
+  const el6 = document.getElementById("modal-balance-6");
+  if (el6) el6.textContent = text;
+
+  const el9 = document.getElementById("modal-balance-9");
+  if (el9) el9.textContent = text;
+}
+
 async function spendBalance(address,amount){
   const res = await fetch(`${SERVER_URL}/api/spend`,{
     method:"POST",
@@ -106,6 +120,8 @@ async function spendBalance(address,amount){
   if(!res.ok) throw new Error(data.error||"Ошибка списания");
   return data;
 }
+
+
 
 // === Проверка количества бесплатных билетов ===
 async function checkFreeTickets(address) {
