@@ -180,7 +180,7 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
       state.opened.push(idx);
       cell.textContent = emoji;
       cell.classList.add("selected", "opened");
-      if (state.opened.length === 4) checkWin(ticket, state, container, statusPrefix);
+      if (state.opened.length === 3) checkWin(ticket, state, container, statusPrefix);
     };
     container.appendChild(cell);
   });
