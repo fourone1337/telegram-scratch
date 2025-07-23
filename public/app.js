@@ -173,11 +173,11 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
 
     cell.onclick = () => {
       if (!isActive) return; // 🚫 если поле не активно — игнорируем клики
-      if (state.opened.length >= 3 || state.opened.includes(idx)) return;
+      if (state.opened.length >= 4 || state.opened.includes(idx)) return;
       state.opened.push(idx);
       cell.textContent = emoji;
       cell.classList.add("selected", "opened");
-      if (state.opened.length === 3) checkWin(ticket, state, container, statusPrefix);
+      if (state.opened.length === 4) checkWin(ticket, state, container, statusPrefix);
     };
     container.appendChild(cell);
   });
