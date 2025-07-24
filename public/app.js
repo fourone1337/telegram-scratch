@@ -15,12 +15,6 @@ const ticketContainer = document.getElementById("ticket-container");
 // === Бесплатный билет ===
 const freeTicketBtn = document.getElementById("free-ticket");
 
-/*/ === Универсальные данные и состояния ===
-const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
-const emojiRewards = { "🍒":5, "⭐️":10, "🍋":15, "🔔":20, "7️⃣":25, "💎":30 };
-const state6 = { ticket: null, opened: [], boughtCount: 0, bonus: null, bonusOpened: false };
-const bonusValues = [1, 1, 1, 2, 1, 4]; // больше единиц, чтобы шанс бонуса был меньше*/
-
 // === Модалка с условиями ===
 const termsModal = document.getElementById("terms-modal");
 const termsText = document.getElementById("terms-text");
@@ -152,112 +146,6 @@ async function checkFreeTickets(address) {
     updateFreeTicketVisual(0);
   }
 }
-/*/ === Генерация и рендер билета ===
-function generateTicket(slotCount){
-  return Array.from({length:slotCount},()=>emojis[Math.floor(Math.random()*emojis.length)]);
-}
-function renderTicket(ticket, state, container, statusPrefix = "", isActive = true) {
-  container.innerHTML = "";
-  ticket.forEach((emoji, idx) => {
-    const cell = document.createElement("div");
-    cell.textContent = state.opened.includes(idx) ? emoji : "❓";
-    if (state.opened.includes(idx)) cell.classList.add("opened");
-
-    cell.onclick = () => {
-      if (!isActive) return; 
-      if (state.opened.length >= 4 || state.opened.includes(idx)) return;
-      state.opened.push(idx);
-      cell.textContent = emoji;
-      cell.classList.add("selected", "opened");
-      if (state.opened.length === 4) checkWin(ticket, state, container, statusPrefix);
-    };
-    container.appendChild(cell);
-
-  });*/
-
-  /*/ === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
-  const bonusCell = document.createElement("div");
-bonusCell.classList.add("bonus-cell");
-bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
-bonusCell.onclick = () => {
-  if (state.bonusOpened) return;
-
-  state.bonusOpened = true;
-  bonusCell.textContent = `x${state.bonus}`;
-  bonusCell.classList.add("opened-bonus");
-
-  // Раскрываем все выбранные
-  const allCells = container.querySelectorAll("div:not(.bonus-cell)");
-  state.opened.forEach(i => {
-    const c = allCells[i];
-    c.textContent = ticket[i];
-    c.classList.remove("pending");
-    c.classList.add("opened");
-  });
-
-  // Если уже выбрано 4 — проверяем выигрыш
-  if (state.opened.length === 4) {
-    checkWin(ticket, state, container, statusPrefix);
-  }
-};
-
-// ✅ Закрываем renderTicket
-container.appendChild(bonusCell);
-} */
-
-/*function checkWin(ticket, state, container, statusPrefix = "") {
-  console.log("🎯 checkWin вызван! Открытые индексы:", state.opened);
-
-  const openedEmojis = state.opened.map(i => ticket[i]);
-  console.log("🧐 Открытые эмодзи:", openedEmojis);
-
-  // Подсчёт одинаковых символов
-  const counts = {};
-  for (let emoji of openedEmojis) {
-    counts[emoji] = (counts[emoji] || 0) + 1;
-  }
-
-  // Проверка на выигрыш (≥3 одинаковых)
-  let winEmoji = null;
-  for (let [emoji, count] of Object.entries(counts)) {
-    if (count >= 3) {
-      winEmoji = emoji;
-      break;
-    }
-  }
-
-  if (winEmoji) {
-    let reward = emojiRewards[winEmoji] || 0;
-
-    if (state.bonusOpened && state.bonus && state.bonus > 1) {
-      reward *= state.bonus;
-      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${winEmoji} (Бонус x${state.bonus})!`;
-    } else {
-      status.textContent = `${statusPrefix}🎉 Вы выиграли ${reward} TON за ${winEmoji}!`;
-    }
-
-    console.log("📤 Отправляем выигрыш на сервер:", {
-      address: currentWalletAddress,
-      emojis: openedEmojis,
-      reward: reward
-    });
-    sendWinToServer(currentWalletAddress, openedEmojis, reward);
-  } else {
-    status.textContent = `${statusPrefix}😞 К сожалению, вы проиграли.`;
-  } 
-
-  // 👇 открываем все оставшиеся ячейки только если бонус открыт
-  if (state.bonusOpened) {
-    container.querySelectorAll("div").forEach((cell, i) => {
-      if (!state.opened.includes(i) && !cell.classList.contains("bonus-cell")) {
-        cell.textContent = ticket[i];
-        cell.classList.add("opened");
-      }
-    });
-  } else {
-    console.log("⚠️ Бонус ещё не открыт — оставшиеся поля скрыты");
-  }
-}*/
 
 // === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
@@ -324,7 +212,7 @@ async function handleBuyInModal6() {
 
 
     isTicketActive6 = true;
-
+   
     buyAgainBtn.textContent =
       state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 

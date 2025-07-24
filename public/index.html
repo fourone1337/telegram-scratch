@@ -46,8 +46,7 @@
 <!-- Кнопки "Купить билет" и Условия -->
 
   <div class="buy-bar">
-  <button id="buy" disabled>🎟️ Билет на 6 слотов</button>
-<!--  <button id="buy9" disabled>🎟️ Билет на 9 слотов</button>-->
+  <button id="buy" disabled>🎟️ Играть</button>
   <button id="disclaimer-button" class="icon-button" title="Условия участия">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#007bff" stroke-width="1.5">
       <circle cx="12" cy="12" r="10" fill="none" />
@@ -56,17 +55,6 @@
     </svg>
   </button>
 </div>
-
-  <!-- 🎟️ Модальное окно игрового поля для 9 слотов
-<div id="ticket-modal-9" class="modal">
-  <div class="modal-content">
-    <span id="close-ticket-9" class="close">&times;</span>
-    <h2>🎟️ Ваш билет (9 слотов)</h2>
-    <div id="ticket-container-9"></div>
-    <div class="modal-balance">Баланс: <span id="modal-balance-9">0.00 TON</span></div>
-    <button id="buy-again-9">🎟️ Купить ещё один</button>
-  </div>
-</div>-->
 
   <div id="status"></div>
 
@@ -125,7 +113,7 @@
   </div>
 </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
   <script src="terms.js"></script>
 </body>
 </html>
