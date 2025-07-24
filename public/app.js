@@ -120,18 +120,23 @@ function renderTicket(ticket,state,container,statusPrefix="",isActive=true){
   const bonusCell=document.createElement("div");
   bonusCell.classList.add("bonus-cell");
   bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
-  bonusCell.onclick=()=>{
-    if(state.bonusOpened)return;
-    state.bonusOpened=true;
-    bonusCell.textContent=`x${state.bonus}`;
-    bonusCell.classList.add("opened-bonus");
-    state.opened.forEach(i=>{
-      const c=container.querySelectorAll("div:not(.bonus-cell)")[i];
-      c.textContent=ticket[i];
-      c.classList.add("opened");
-    });
-    if(state.opened.length===4)checkWin(ticket,state,container,statusPrefix);
-  };
+  // Бонус теперь активен только после покупки
+  if(!isActive){
+    bonusCell.classList.add("disabled");
+  } else {
+    bonusCell.onclick=()=>{
+      if(state.bonusOpened)return;
+      state.bonusOpened=true;
+      bonusCell.textContent=`x${state.bonus}`;
+      bonusCell.classList.add("opened-bonus");
+      state.opened.forEach(i=>{
+        const c=container.querySelectorAll("div:not(.bonus-cell)")[i];
+        c.textContent=ticket[i];
+        c.classList.add("opened");
+      });
+      if(state.opened.length===4)checkWin(ticket,state,container,statusPrefix);
+    };
+  }
   container.appendChild(bonusCell);
 }
 function checkWin(ticket,state,container,statusPrefix=""){
@@ -166,6 +171,8 @@ buyBtn.onclick=()=>{
   isTicketActive6=false;
   state6.ticket=generateTicket(6);
   state6.opened=[];
+  state6.bonus=null;
+  state6.bonusOpened=false;
   renderTicket(state6.ticket,state6,ticketContainer,"",false);
   ticketModal.style.display="block";
   buyAgainBtn.textContent=state6.boughtCount===0?"Купить билет":"Купить ещё один";
