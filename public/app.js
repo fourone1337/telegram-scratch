@@ -264,7 +264,19 @@ buyBtn.onclick = () => {
   isTicketActive6 = false; // 🚫 пока не куплен
   state6.ticket = generateTicket(6);
   state6.opened = [];
-  renderTicket(state6.ticket, state6, ticketContainer, "", false); // передаем false
+  renderTicket(
+  state6.ticket,
+  state6,
+  ticketContainer,
+  "",
+  true,
+  (ticket, state, container, prefix) => {
+    checkWin(ticket, state, container, prefix, status, (emojis, reward) => {
+      sendWinToServer(currentWalletAddress, emojis, reward);
+    });
+  }
+);
+ // передаем false
   
   ticketModal.style.display = "block";
   buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
@@ -297,10 +309,34 @@ async function handleBuyInModal6() {
     state6.bonusOpened = false;
 
     status.textContent = "Выберите 4 ячейки, чтобы открыть";
-    renderTicket(state6.ticket, state6, ticketContainer, "", true);
+    renderTicket(
+  state6.ticket,
+  state6,
+  ticketContainer,
+  "",
+  true,
+  (ticket, state, container, prefix) => {
+    checkWin(ticket, state, container, prefix, status, (emojis, reward) => {
+      sendWinToServer(currentWalletAddress, emojis, reward);
+    });
+  }
+);
+
 
     isTicketActive6 = true;
-    renderTicket(state6.ticket, state6, ticketContainer, "", true);
+    renderTicket(
+  state6.ticket,
+  state6,
+  ticketContainer,
+  "",
+  true,
+  (ticket, state, container, prefix) => {
+    checkWin(ticket, state, container, prefix, status, (emojis, reward) => {
+      sendWinToServer(currentWalletAddress, emojis, reward);
+    });
+  }
+);
+
     buyAgainBtn.textContent =
       state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 
@@ -339,7 +375,19 @@ freeTicketBtn.onclick = async () => {
       state6.boughtCount++;
       state6.bonus = bonusValues[Math.floor(Math.random() * bonusValues.length)];
       state6.bonusOpened = false;
-    renderTicket(state6.ticket, state6, ticketContainer, "", true);
+    renderTicket(
+  state6.ticket,
+  state6,
+  ticketContainer,
+  "",
+  true,
+  (ticket, state, container, prefix) => {
+    checkWin(ticket, state, container, prefix, status, (emojis, reward) => {
+      sendWinToServer(currentWalletAddress, emojis, reward);
+    });
+  }
+);
+
       ticketModal.style.display = "block";
       status.textContent="Выберите 3 ячейки, чтобы открыть";
       updateFreeTicketVisual(data.remaining);
