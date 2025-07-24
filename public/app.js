@@ -1,9 +1,9 @@
+import { state6, generateTicket, renderTicket, checkWin, bonusValues } from './gameLogic.js';
 // === Основные элементы ===
 const status = document.getElementById("status");
 const SERVER_URL = "https://scratch-lottery.ru";
 let currentWalletAddress = null;
 let isTicketActive6 = false;
-//let isTicketActive9 = false;
 
 // === 6 слотов ===
 const buyBtn = document.getElementById("buy");
@@ -12,23 +12,14 @@ const closeTicketBtn = document.getElementById("close-ticket");
 const ticketModal = document.getElementById("ticket-modal");
 const ticketContainer = document.getElementById("ticket-container");
 
-/*/ === 9 слотов ===
-const buyBtn9 = document.getElementById("buy9");
-const buyAgainBtn9 = document.getElementById("buy-again-9");
-const closeTicketBtn9 = document.getElementById("close-ticket-9");
-const ticketModal9 = document.getElementById("ticket-modal-9");
-const ticketContainer9 = document.getElementById("ticket-container-9");
-*/
-
 // === Бесплатный билет ===
 const freeTicketBtn = document.getElementById("free-ticket");
 
-// === Универсальные данные и состояния ===
+/*/ === Универсальные данные и состояния ===
 const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
 const emojiRewards = { "🍒":5, "⭐️":10, "🍋":15, "🔔":20, "7️⃣":25, "💎":30 };
 const state6 = { ticket: null, opened: [], boughtCount: 0, bonus: null, bonusOpened: false };
-//const state9 = { ticket: null, opened: [], boughtCount: 0, bonus: null, bonusOpened: false };
-const bonusValues = [1, 1, 1, 2, 1, 4]; // больше единиц, чтобы шанс бонуса был меньше
+const bonusValues = [1, 1, 1, 2, 1, 4]; // больше единиц, чтобы шанс бонуса был меньше*/
 
 // === Модалка с условиями ===
 const termsModal = document.getElementById("terms-modal");
@@ -107,9 +98,6 @@ function updateModalBalances(balance, isError = false) {
 
   const el6 = document.getElementById("modal-balance-6");
   if (el6) el6.textContent = text;
-
-  /*const el9 = document.getElementById("modal-balance-9");
-  if (el9) el9.textContent = text;*/
 }
 
 async function spendBalance(address,amount){
@@ -164,7 +152,7 @@ async function checkFreeTickets(address) {
     updateFreeTicketVisual(0);
   }
 }
-// === Генерация и рендер билета ===
+/*/ === Генерация и рендер билета ===
 function generateTicket(slotCount){
   return Array.from({length:slotCount},()=>emojis[Math.floor(Math.random()*emojis.length)]);
 }
@@ -185,9 +173,9 @@ function renderTicket(ticket, state, container, statusPrefix = "", isActive = tr
     };
     container.appendChild(cell);
 
-  });
+  });*/
 
-  // === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
+  /*/ === Бонусная ячейка (ДОБАВЛЯЕМ ОДИН РАЗ) ===
   const bonusCell = document.createElement("div");
 bonusCell.classList.add("bonus-cell");
 bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
@@ -207,14 +195,6 @@ bonusCell.onclick = () => {
     c.classList.add("opened");
   });
 
-  // 👉 Теперь открываем оставшиеся поля
-/*  allCells.forEach((cell, i) => {
-    if (!state.opened.includes(i)) {
-      cell.textContent = ticket[i];
-      cell.classList.add("opened");
-    }
-  });*/
-
   // Если уже выбрано 4 — проверяем выигрыш
   if (state.opened.length === 4) {
     checkWin(ticket, state, container, statusPrefix);
@@ -223,9 +203,9 @@ bonusCell.onclick = () => {
 
 // ✅ Закрываем renderTicket
 container.appendChild(bonusCell);
-} // 🔥 <-- вот эта скобка нужна, чтобы закрыть renderTicket
+} */
 
-function checkWin(ticket, state, container, statusPrefix = "") {
+/*function checkWin(ticket, state, container, statusPrefix = "") {
   console.log("🎯 checkWin вызван! Открытые индексы:", state.opened);
 
   const openedEmojis = state.opened.map(i => ticket[i]);
@@ -264,7 +244,7 @@ function checkWin(ticket, state, container, statusPrefix = "") {
     sendWinToServer(currentWalletAddress, openedEmojis, reward);
   } else {
     status.textContent = `${statusPrefix}😞 К сожалению, вы проиграли.`;
-  }
+  } 
 
   // 👇 открываем все оставшиеся ячейки только если бонус открыт
   if (state.bonusOpened) {
@@ -277,7 +257,7 @@ function checkWin(ticket, state, container, statusPrefix = "") {
   } else {
     console.log("⚠️ Бонус ещё не открыт — оставшиеся поля скрыты");
   }
-}
+}*/
 
 // === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
@@ -337,43 +317,6 @@ async function handleBuyInModal6() {
 buyAgainBtn.onclick = handleBuyInModal6;
 closeTicketBtn.onclick = () => (ticketModal.style.display = "none");
 
-
-
-/*/ === Логика модалки 9 слотов ===
-buyBtn9.onclick = () => {
-  isTicketActive9 = false; // 🚫 пока не куплен
-  state9.ticket = generateTicket(9);
-  state9.opened = [];
-  renderTicket(state9.ticket, state9, ticketContainer9, "(9 слотов) ", false);
-  
-  ticketModal9.style.display = "block";
-  buyAgainBtn9.textContent = state9.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
-};
-async function handleBuyInModal9(){
-  if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
-  try{
-    status.textContent="⏳ Проверяем баланс...";
-    buyAgainBtn9.disabled=true;
-    await spendBalance(currentWalletAddress,0.1);
-    state9.ticket = generateTicket(9);
-    state9.opened = [];
-    state9.boughtCount++;
-    isTicketActive9 = true; // ✅ теперь можно кликать
-    renderTicket(state9.ticket, state9, ticketContainer9, "(9 слотов) ", true);
-    buyAgainBtn9.textContent = state9.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
-    await fetchBalance(currentWalletAddress);
-  }catch(err){
-    console.error("Ошибка покупки:",err);
-    showCustomAlert(`Ошибка: ${err.message}`);
-    status.textContent="❌ Покупка не удалась.";
-  }finally{
-    buyAgainBtn9.disabled=false;
-  }
-}
-buyAgainBtn9.onclick = handleBuyInModal9;
-closeTicketBtn9.onclick = ()=>ticketModal9.style.display="none";
-*/
-
 // === Бесплатный билет ===
 freeTicketBtn.onclick = async () => {
   if(!currentWalletAddress){ showCustomAlert("Сначала подключите кошелёк!"); return; }
@@ -414,7 +357,6 @@ freeTicketBtn.onclick = async () => {
 // === Закрытие модалок кликом вне области
 window.addEventListener("click",e=>{
   if(e.target===ticketModal) ticketModal.style.display="none";
- /* if(e.target===ticketModal9) ticketModal9.style.display="none";*/
 });
 
 // === Универсальная настройка модалок для пополнения/вывода ===
@@ -512,7 +454,7 @@ tonConnectUI.onStatusChange(wallet=>{
   }
   const enabled=!!friendly;
   buyBtn.disabled=!enabled;
-  //buyBtn9.disabled=!enabled;
+  
   document.getElementById("topup").disabled=!enabled;
   document.getElementById("withdraw").disabled=!enabled;
 
