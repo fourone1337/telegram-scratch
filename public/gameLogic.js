@@ -27,6 +27,7 @@ export function renderTicket(ticket, state, container, statusPrefix = "", isActi
     if (state.opened.includes(idx)) cell.classList.add("opened");
 
     cell.onclick = () => {
+      // 🚫 если поле неактивное – ничего не делаем
       if (!isActive) return;
       if (state.opened.length >= 4 || state.opened.includes(idx)) return;
       state.opened.push(idx);
@@ -37,12 +38,15 @@ export function renderTicket(ticket, state, container, statusPrefix = "", isActi
     container.appendChild(cell);
   });
 
-  // Бонусная ячейка
+  // 🎁 Бонусная ячейка
   const bonusCell = document.createElement("div");
   bonusCell.classList.add("bonus-cell");
   bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
   bonusCell.onclick = () => {
+    // 🚫 тоже блокируем бонус, если поле неактивное
+    if (!isActive) return;
     if (state.bonusOpened) return;
+
     state.bonusOpened = true;
     bonusCell.textContent = `x${state.bonus}`;
     bonusCell.classList.add("opened-bonus");
@@ -59,6 +63,7 @@ export function renderTicket(ticket, state, container, statusPrefix = "", isActi
   };
   container.appendChild(bonusCell);
 }
+
 
 // === Проверка выигрыша ===
 export function checkWin(ticket, state, container, statusPrefix = "", statusEl, sendWinCb) {
