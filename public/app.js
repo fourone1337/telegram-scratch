@@ -25,11 +25,74 @@ const customAlertText = document.getElementById("custom-alert-text");
 const customAlertOk = document.getElementById("custom-alert-ok");
 const customAlertClose = document.getElementById("close-custom-alert");
 
+// ==== TOPUP & WITHDRAW MODALS ====
+const topupModal = document.getElementById("topup-modal");
+const topupBtn = document.getElementById("topup");
+const topupClose = document.getElementById("close-topup");
+const topupInput = document.getElementById("topup-input");
+const topupOk = document.getElementById("topup-ok");
+
+const withdrawModal = document.getElementById("withdraw-modal");
+const withdrawBtn = document.getElementById("withdraw");
+const withdrawClose = document.getElementById("close-withdraw");
+const withdrawInput = document.getElementById("withdraw-input");
+const withdrawOk = document.getElementById("withdraw-ok");
+
 // ==== GAME STATE ====
 const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
 const emojiRewards = {"🍒":5,"⭐️":10,"🍋":15,"🔔":20,"7️⃣":25,"💎":30};
 const bonusValues = [1,1,1,2,1,4];
 let state6 = {ticket:null,opened:[],boughtCount:0,bonus:null,bonusOpened:false};
+
+//=== ===
+function setupModal(modal,openBtn,closeBtn,input,okBtn,onSubmit){
+  openBtn.onclick = ()=>{
+    if(!currentWalletAddress){showCustomAlert("Сначала подключите кошелёк!");return;}
+    input.value = "";
+    modal.style.display = "block";
+  };
+  closeBtn.onclick = ()=> modal.style.display = "none";
+  okBtn.onclick = ()=>{
+    const val = parseFloat(input.value);
+    if(isNaN(val) || val <= 0){showCustomAlert("Некорректная сумма");return;}
+    onSubmit(val,modal);
+  };
+  window.addEventListener("click",e=>{if(e.target===modal)modal.style.display="none";});
+}
+
+setupModal(topupModal, topupBtn, topupClose, topupInput, topupOk, async (amount, modal)=>{
+  try{
+    status.textContent = "⏳ Ожидаем перевод...";
+    await tonConnectUI.sendTransaction({
+      validUntil: Math.floor(Date.now()/1000)+300,
+      messages:[{address:"UQDYpGx-Y95M0F-ETSXFwC6YeuJY31qaqetPlkmYDEcKyX8g", amount:(amount*1e9).toString()}]
+    });
+    await verifyTopup(currentWalletAddress,amount);
+    modal.style.display = "none";
+  }catch(e){
+    console.error("Ошибка пополнения:",e);
+    showCustomAlert("❌ Пополнение отменено или не удалось");
+  }
+});
+
+setupModal(withdrawModal, withdrawBtn, withdrawClose, withdrawInput, withdrawOk, async (amount, modal)=>{
+  try{
+    const res = await fetch(`${SERVER_URL}/api/request-withdraw`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({address:currentWalletAddress,amount})
+    });
+    const data = await res.json();
+    if(data.success){
+      showCustomAlert("✅ Заявка на вывод принята");
+      modal.style.display = "none";
+    }else{
+      showCustomAlert("❌ Ошибка: "+data.error);
+    }
+  }catch(e){
+    showCustomAlert("❌ Ошибка при выводе: "+e.message);
+  }
+});
 
 // ==== UI HELPERS ====
 function showCustomAlert(text){customAlertText.textContent=text;customAlert.style.display='block';}
