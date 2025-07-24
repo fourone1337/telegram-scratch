@@ -41,9 +41,12 @@ export function renderTicket(ticket, state, container, statusPrefix = "", isActi
   // 🎁 Бонусная ячейка
   const bonusCell = document.createElement("div");
   bonusCell.classList.add("bonus-cell");
-  bonusCell.textContent = state.bonusOpened ? `x${state.bonus}` : "🎁";
+  bonusCell.textContent = state.bonusOpened
+    ? `x${state.bonus}`
+    : "🎁";
+  
   bonusCell.onclick = () => {
-    // 🚫 тоже блокируем бонус, если поле неактивное
+    // 🚫 блокируем бонус, если поле неактивное
     if (!isActive) return;
     if (state.bonusOpened) return;
 
@@ -63,6 +66,7 @@ export function renderTicket(ticket, state, container, statusPrefix = "", isActi
   };
   container.appendChild(bonusCell);
 }
+
 
 
 // === Проверка выигрыша ===
