@@ -324,18 +324,6 @@ async function handleBuyInModal6() {
 
 
     isTicketActive6 = true;
-    renderTicket(
-  state6.ticket,
-  state6,
-  ticketContainer,
-  "",
-  true,
-  (ticket, state, container, prefix) => {
-    checkWin(ticket, state, container, prefix, status, (emojis, reward) => {
-      sendWinToServer(currentWalletAddress, emojis, reward);
-    });
-  }
-);
 
     buyAgainBtn.textContent =
       state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
