@@ -512,7 +512,7 @@ tonConnectUI.onStatusChange(wallet=>{
   }
   const enabled=!!friendly;
   buyBtn.disabled=!enabled;
-  buyBtn9.disabled=!enabled;
+  //buyBtn9.disabled=!enabled;
   document.getElementById("topup").disabled=!enabled;
   document.getElementById("withdraw").disabled=!enabled;
 
