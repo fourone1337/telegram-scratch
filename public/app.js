@@ -147,28 +147,32 @@ async function checkFreeTickets(address) {
   }
 }
 
-// === Логика модалки 6 слотов ===
 buyBtn.onclick = () => {
-  isTicketActive6 = false; // 🚫 пока не куплен
+  // 🚫 пока билет не куплен — просто показываем поле без кликов
+  isTicketActive6 = false;
+
+  // генерируем случайное поле только для вида
   state6.ticket = generateTicket(6);
   state6.opened = [];
+  state6.bonus = null;
+  state6.bonusOpened = false;
+
+  // рисуем поле, но делаем его неактивным (клики не работают)
   renderTicket(
-  state6.ticket,
-  state6,
-  ticketContainer,
-  "",
-  true,
-  (ticket, state, container, prefix) => {
-    checkWin(ticket, state, container, prefix, status, (emojis, reward) => {
-      sendWinToServer(currentWalletAddress, emojis, reward);
-    });
-  }
-);
- // передаем false
-  
+    state6.ticket,
+    state6,
+    ticketContainer,
+    "",
+    false, // 🚫 поле неактивное
+    () => {} // пустой коллбэк
+  );
+
+  // сообщение и открытие модалки
+  status.textContent = "Чтобы начать игру, купите билет!";
   ticketModal.style.display = "block";
   buyAgainBtn.textContent = state6.boughtCount === 0 ? "Купить билет" : "Купить ещё один";
 };
+  
 async function handleBuyInModal6() {
   // ✅ Проверяем только если уже был куплен хотя бы один билет
   if (
