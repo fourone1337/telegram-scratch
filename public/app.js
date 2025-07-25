@@ -236,6 +236,7 @@ buyBtn.onclick=()=>{
   state6.opened=[];
   state6.bonus=null;
   state6.bonusOpened=false;
+  state6.boughtCount = 0;
   renderTicket(state6.ticket,state6,ticketContainer,"",false);
   ticketModal.style.display="block";
   buyAgainBtn.textContent=state6.boughtCount===0?"Купить билет":"Купить ещё один";
