@@ -39,9 +39,9 @@ const withdrawInput = document.getElementById("withdraw-input");
 const withdrawOk = document.getElementById("withdraw-ok");
 
 // ==== GAME STATE ====
-const emojis = ["🍒","⭐️","🍋","🔔","7️⃣","💎"];
-const emojiRewards = {"🍒":5,"⭐️":10,"🍋":15,"🔔":20,"7️⃣":25,"💎":30};
-const bonusValues = [1,1,1,2,1,4];
+const emojis = ["🍒","🍋","🍌","⭐️","🔔","💰","💎"];
+const emojiRewards = {"🍒":0,25,"🍋":0,25,"🍌":0,25,"⭐️":1,"🔔":1,"💰":5,"💎":10};
+const bonusValues = [1,1,1,2,1,4,7];
 let state6 = {ticket:null,opened:[],boughtCount:0,bonus:null,bonusOpened:false};
 
 //=== ===
